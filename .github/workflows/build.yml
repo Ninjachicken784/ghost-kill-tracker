@@ -12,17 +12,10 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: List files
-        run: find . -name "gradlew" -o -name "build.gradle" | head -20
-      - name: Grant execute permission for gradlew
-        run: find . -name "gradlew" -exec chmod +x {} \;
       - name: Build with Gradle
-        run: |
-          BUILD_DIR=$(find . -name "build.gradle" | head -1 | xargs dirname)
-          echo "Building in $BUILD_DIR"
-          cd $BUILD_DIR && ./gradlew build
+        run: cd ghost-kill-tracker && gradle build
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: ghost-kill-tracker-jar
-          path: "**/build/libs/*[^sources].jar"
+          path: ghost-kill-tracker/build/libs/*[^sources].jar
