@@ -15,14 +15,12 @@ public class GhostKillKeybinds {
     public static void register() {
         toggleHudKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.ghostkilltracker.toggle_hud",
-                InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_H,
                 "key.categories.misc"
         ));
 
         resetSessionKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.ghostkilltracker.reset_session",
-                InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_J,
                 "key.categories.misc"
         ));
