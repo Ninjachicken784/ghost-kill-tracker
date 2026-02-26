@@ -1,1 +1,24 @@
 
+name: Build Mod
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Grant execute permission for gradlew
+        run: chmod +x ghost-kill-tracker/gradlew
+      - name: Build with Gradle
+        run: cd ghost-kill-tracker && ./gradlew build
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghost-kill-tracker-jar
+          path: ghost-kill-tracker/build/libs/*[^sources].jar
