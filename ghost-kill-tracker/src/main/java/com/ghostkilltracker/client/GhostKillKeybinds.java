@@ -17,14 +17,14 @@ public class GhostKillKeybinds {
                 "key.ghostkilltracker.toggle_hud",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_H,
-                "category.ghostkilltracker"
+                "key.categories.misc"
         ));
 
         resetSessionKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.ghostkilltracker.reset_session",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_J,
-                "category.ghostkilltracker"
+                "key.categories.misc"
         ));
     }
 
