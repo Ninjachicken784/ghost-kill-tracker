@@ -13,8 +13,8 @@ public class GhostKillHud {
     private static final int VALUE_COLOR  = 0xFFFFFF55;
     private static final DecimalFormat DF0 = new DecimalFormat("#,##0");
     private static final DecimalFormat DF1 = new DecimalFormat("#,##0.0");
-    private static final int BOX_W  = 160;
-    private static final int BOX_H  = 90;
+    private static final int BOX_W  = 155;
+    private static final int BOX_H  = 72;
     private static final int PAD    = 6;
     private static final int LINE_H = 11;
     private static final int GAP    = 6;
@@ -36,7 +36,6 @@ public class GhostKillHud {
         drawRow(ctx, client, x, ly + LINE_H,     "Kills/h",     DF1.format(s.getTotalKillsPerHour()));
         drawRow(ctx, client, x, ly + LINE_H * 2, "Sorrow",      DF0.format(s.getTotalSorrow()));
         drawRow(ctx, client, x, ly + LINE_H * 3, "Plasma",      DF0.format(s.getTotalPlasma()));
-        drawRow(ctx, client, x, ly + LINE_H * 4, "Scav coins",  DF0.format(s.getTotalScav()));
         y += BOX_H + GAP;
 
         drawBox(ctx, x, y, BOX_W, BOX_H);
@@ -46,7 +45,6 @@ public class GhostKillHud {
         drawRow(ctx, client, x, ly + LINE_H,     "Kills/h",     DF1.format(s.getSessionKillsPerHour()));
         drawRow(ctx, client, x, ly + LINE_H * 2, "Sorrow",      DF0.format(s.getSessionSorrow()));
         drawRow(ctx, client, x, ly + LINE_H * 3, "Plasma",      DF0.format(s.getSessionPlasma()));
-        drawRow(ctx, client, x, ly + LINE_H * 4, "Scav coins",  DF0.format(s.getSessionScav()));
         y += BOX_H + GAP;
 
         ctx.drawTextWithShadow(client.textRenderer, Text.literal("§7[N] Start  [M] Pause  [R] Reset"), x, y, 0xFFAAAAAA);
