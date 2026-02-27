@@ -4,10 +4,9 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
-import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +21,8 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     private boolean nWasDown = false;
     private boolean mWasDown = false;
     private boolean rWasDown = false;
-
-    private int lastBestiaryKills = -1;
+    private int lastGauntletKills = -1;
+    private int tickCounter = 0;
     private static final Pattern KILLS_PATTERN = Pattern.compile("Kills:\\s*([\\d,]+)");
 
     @Override
@@ -35,31 +34,31 @@ public class GhostKillTrackerClient implements ClientModInitializer {
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player == null) return;
+            if (client.player == null || client.currentScreen != null) return;
 
-            // Read bestiary kills when GUI is open
-            if (client.currentScreen instanceof GenericContainerScreen screen) {
-                GenericContainerScreenHandler handler = screen.getScreenHandler();
-                for (int i = 0; i < handler.getRows() * 9; i++) {
-                    ItemStack stack = handler.getSlot(i).getStack();
-                    if (stack.isEmpty()) continue;
-                    String name = stack.getName().getString();
-                    if (name.contains("Ghost")) {
-                        var lore = stack.get(net.minecraft.component.DataComponentTypes.LORE);
-                        if (lore != null) {
-                            for (Text line : lore.lines()) {
-                                Matcher m = KILLS_PATTERN.matcher(line.getString());
-                                if (m.find()) {
-                                    try {
-                                        int kills = Integer.parseInt(m.group(1).replace(",", ""));
-                                        if (lastBestiaryKills >= 0 && kills > lastBestiaryKills) {
-                                            int diff = kills - lastBestiaryKills;
-                                            for (int k = 0; k < diff; k++) SESSION.addKill();
+            // Read gauntlet once per second (20 ticks)
+            tickCounter++;
+            if (tickCounter >= 20) {
+                tickCounter = 0;
+                ItemStack held = client.player.getMainHandStack();
+                if (!held.isEmpty()) {
+                    var lore = held.get(DataComponentTypes.LORE);
+                    if (lore != null) {
+                        for (Text line : lore.lines()) {
+                            Matcher m = KILLS_PATTERN.matcher(line.getString());
+                            if (m.find()) {
+                                try {
+                                    int kills = Integer.parseInt(m.group(1).replace(",", ""));
+                                    if (lastGauntletKills >= 0 && kills > lastGauntletKills) {
+                                        int diff = kills - lastGauntletKills;
+                                        // Max 20 kills per second is realistic, ignore lag spikes
+                                        if (diff <= 20) {
+                                            for (int i = 0; i < diff; i++) SESSION.addKill();
                                         }
-                                        lastBestiaryKills = kills;
-                                    } catch (NumberFormatException ignored) {}
-                                    break;
-                                }
+                                    }
+                                    lastGauntletKills = kills;
+                                } catch (NumberFormatException ignored) {}
+                                break;
                             }
                         }
                     }
@@ -70,9 +69,9 @@ public class GhostKillTrackerClient implements ClientModInitializer {
             boolean mDown = InputUtil.isKeyPressed(client.getWindow(), 77);
             boolean rDown = InputUtil.isKeyPressed(client.getWindow(), 82);
 
-            if (nDown && !nWasDown) { SESSION.start(); lastBestiaryKills = -1; client.player.sendMessage(Text.literal("§aTracker STARTED!"), true); }
+            if (nDown && !nWasDown) { SESSION.start(); lastGauntletKills = -1; client.player.sendMessage(Text.literal("§aTracker STARTED!"), true); }
             if (mDown && !mWasDown) { SESSION.pause(); client.player.sendMessage(Text.literal("§eTracker PAUSED!"), true); }
-            if (rDown && !rWasDown) { SESSION.resetSession(); lastBestiaryKills = -1; client.player.sendMessage(Text.literal("§cSession RESET!"), true); }
+            if (rDown && !rWasDown) { SESSION.resetSession(); lastGauntletKills = -1; client.player.sendMessage(Text.literal("§cSession RESET!"), true); }
 
             nWasDown = nDown;
             mWasDown = mDown;
