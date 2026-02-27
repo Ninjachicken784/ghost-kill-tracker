@@ -8,7 +8,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Mixin(ClientPlayNetworkHandler.class)
@@ -18,8 +17,9 @@ public class ClientPlayNetworkHandlerMixin {
         "RARE DROP!.*?Sorrow", Pattern.CASE_INSENSITIVE);
     private static final Pattern PLASMA = Pattern.compile(
         "RARE DROP!.*?Plasma", Pattern.CASE_INSENSITIVE);
-    private static final Pattern SCAV = Pattern.compile(
-        "\\+([\\d,]+) coins per kill", Pattern.CASE_INSENSITIVE);
+
+    private long lastSorrowTime = 0;
+    private long lastPlasmaTime = 0;
 
     @Inject(method = "onGameMessage", at = @At("HEAD"))
     private void onChat(GameMessageS2CPacket packet, CallbackInfo ci) {
@@ -28,19 +28,19 @@ public class ClientPlayNetworkHandlerMixin {
         String raw = msg.getString();
 
         if (SORROW.matcher(raw).find()) {
-            GhostKillTrackerClient.SESSION.addSorrow();
+            long now = System.currentTimeMillis();
+            if (now - lastSorrowTime > 1000) {
+                lastSorrowTime = now;
+                GhostKillTrackerClient.SESSION.addSorrow();
+            }
             return;
         }
         if (PLASMA.matcher(raw).find()) {
-            GhostKillTrackerClient.SESSION.addPlasma();
-            return;
-        }
-        Matcher scav = SCAV.matcher(raw);
-        if (scav.find()) {
-            try {
-                int amount = Integer.parseInt(scav.group(1).replace(",", ""));
-                GhostKillTrackerClient.SESSION.addScav(amount);
-            } catch (NumberFormatException ignored) {}
+            long now = System.currentTimeMillis();
+            if (now - lastPlasmaTime > 1000) {
+                lastPlasmaTime = now;
+                GhostKillTrackerClient.SESSION.addPlasma();
+            }
         }
     }
 }
