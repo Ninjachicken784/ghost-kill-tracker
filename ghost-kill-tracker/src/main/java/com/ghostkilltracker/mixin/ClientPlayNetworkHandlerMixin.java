@@ -14,21 +14,21 @@ import java.util.regex.Pattern;
 @Mixin(ClientPlayNetworkHandler.class)
 public class ClientPlayNetworkHandlerMixin {
 
-    // Scavenger coins on kill - works at ALL combat levels including max
-    private static final Pattern SCAV = Pattern.compile(
-        "\\+([\\d,]+) coins?", Pattern.CASE_INSENSITIVE);
+    // +296 Combat (1,177,953,599/0)
+    private static final Pattern COMBAT_XP = Pattern.compile(
+        "\\+[\\d,]+ Combat \\(", Pattern.CASE_INSENSITIVE);
 
-    // Ghost coin materialization - the big drop
-    private static final Pattern GHOST_COINS = Pattern.compile(
-        "materialized ([\\d,]+) coins?", Pattern.CASE_INSENSITIVE);
-
+    // RARE DROP! Sorrow (+403 ✦ Magic Find)
     private static final Pattern SORROW = Pattern.compile(
-        "Rare Drop.*?Sorrow", Pattern.CASE_INSENSITIVE);
+        "RARE DROP!.*?Sorrow", Pattern.CASE_INSENSITIVE);
 
+    // RARE DROP! Plasma (+403 ✦ Magic Find)
     private static final Pattern PLASMA = Pattern.compile(
-        "Rare Drop.*?Plasma", Pattern.CASE_INSENSITIVE);
+        "RARE DROP!.*?Plasma", Pattern.CASE_INSENSITIVE);
 
-    private boolean lastWasScav = false;
+    // Purse: 201,258 (+1,004)
+    private static final Pattern PURSE = Pattern.compile(
+        "Purse:.*?\\+([\\d,]+)\\)", Pattern.CASE_INSENSITIVE);
 
     @Inject(method = "onGameMessage", at = @At("HEAD"))
     private void onChat(GameMessageS2CPacket packet, CallbackInfo ci) {
@@ -36,27 +36,24 @@ public class ClientPlayNetworkHandlerMixin {
         if (msg == null) return;
         String raw = msg.getString();
 
-        // Count kill from scav coins appearing
-        Matcher scav = SCAV.matcher(raw);
-        if (scav.find()) {
-            if (!lastWasScav) {
-                GhostKillTrackerClient.SESSION.addKill();
-                lastWasScav = true;
-            }
-            try {
-                int amount = Integer.parseInt(scav.group(1).replace(",", ""));
-                GhostKillTrackerClient.SESSION.addScav(amount);
-            } catch (NumberFormatException ignored) {}
+        if (COMBAT_XP.matcher(raw).find()) {
+            GhostKillTrackerClient.SESSION.addKill();
             return;
         }
-        lastWasScav = false;
-
         if (SORROW.matcher(raw).find()) {
             GhostKillTrackerClient.SESSION.addSorrow();
             return;
         }
         if (PLASMA.matcher(raw).find()) {
             GhostKillTrackerClient.SESSION.addPlasma();
+            return;
+        }
+        Matcher purse = PURSE.matcher(raw);
+        if (purse.find()) {
+            try {
+                int amount = Integer.parseInt(purse.group(1).replace(",", ""));
+                GhostKillTrackerClient.SESSION.addScav(amount);
+            } catch (NumberFormatException ignored) {}
         }
     }
 }
