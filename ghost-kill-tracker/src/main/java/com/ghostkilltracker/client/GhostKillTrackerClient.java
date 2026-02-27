@@ -18,12 +18,11 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static final KillSession SESSION = new KillSession();
     public static boolean hudVisible = true;
-
     private boolean nWasDown = false;
     private boolean mWasDown = false;
     private boolean rWasDown = false;
-
     private int lastGauntletKills = -1;
+    private int tickCounter = 0;
     private static final Pattern KILLS_PATTERN = Pattern.compile("Kills:\\s*([\\d,]+)");
 
     @Override
@@ -37,35 +36,40 @@ public class GhostKillTrackerClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null || client.currentScreen != null) return;
 
-            // Track kills via gauntlet kill counter
-            ItemStack held = client.player.getMainHandStack();
-            if (!held.isEmpty()) {
-                var lore = held.get(DataComponentTypes.LORE);
-                if (lore != null) {
-                    for (Text line : lore.lines()) {
-                        String text = line.getString();
-                        Matcher m = KILLS_PATTERN.matcher(text);
-                        if (m.find()) {
-                            try {
-                                int kills = Integer.parseInt(m.group(1).replace(",", ""));
-                                if (lastGauntletKills >= 0 && kills > lastGauntletKills) {
-                                    int diff = kills - lastGauntletKills;
-                                    for (int i = 0; i < diff; i++) SESSION.addKill();
-                                }
-                                lastGauntletKills = kills;
-                            } catch (NumberFormatException ignored) {}
-                            break;
+            // Only check gauntlet every 5 ticks to avoid over-reading
+            tickCounter++;
+            if (tickCounter >= 5) {
+                tickCounter = 0;
+                ItemStack held = client.player.getMainHandStack();
+                if (!held.isEmpty()) {
+                    var lore = held.get(DataComponentTypes.LORE);
+                    if (lore != null) {
+                        for (Text line : lore.lines()) {
+                            Matcher m = KILLS_PATTERN.matcher(line.getString());
+                            if (m.find()) {
+                                try {
+                                    int kills = Integer.parseInt(m.group(1).replace(",", ""));
+                                    if (lastGauntletKills >= 0 && kills > lastGauntletKills) {
+                                        int diff = kills - lastGauntletKills;
+                                        // Sanity check - ignore jumps over 3 (lag spike etc)
+                                        if (diff <= 3) {
+                                            for (int i = 0; i < diff; i++) SESSION.addKill();
+                                        }
+                                    }
+                                    lastGauntletKills = kills;
+                                } catch (NumberFormatException ignored) {}
+                                break;
+                            }
                         }
                     }
                 }
             }
 
-            // Keybinds
             boolean nDown = InputUtil.isKeyPressed(client.getWindow(), 78);
             boolean mDown = InputUtil.isKeyPressed(client.getWindow(), 77);
             boolean rDown = InputUtil.isKeyPressed(client.getWindow(), 82);
 
-            if (nDown && !nWasDown) { SESSION.start(); client.player.sendMessage(Text.literal("§aTracker STARTED!"), true); }
+            if (nDown && !nWasDown) { SESSION.start(); lastGauntletKills = -1; client.player.sendMessage(Text.literal("§aTracker STARTED!"), true); }
             if (mDown && !mWasDown) { SESSION.pause(); client.player.sendMessage(Text.literal("§eTracker PAUSED!"), true); }
             if (rDown && !rWasDown) { SESSION.resetSession(); lastGauntletKills = -1; client.player.sendMessage(Text.literal("§cSession RESET!"), true); }
 
