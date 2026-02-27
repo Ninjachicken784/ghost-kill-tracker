@@ -28,19 +28,27 @@ public class GhostKillTrackerClient implements ClientModInitializer {
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null || client.currentScreen != null) return;
-            long handle = client.getWindow().getHandle();
 
-            if (InputUtil.isKeyPressed(handle, 78)) {
-                if (!nWasDown) { nWasDown = true; SESSION.start(); client.player.sendMessage(Text.literal("§aTracker STARTED!"), true); }
-            } else { nWasDown = false; }
+            boolean nDown = InputUtil.isKeyPressed(client.getWindow().getHandle(), 78);
+            boolean mDown = InputUtil.isKeyPressed(client.getWindow().getHandle(), 77);
+            boolean rDown = InputUtil.isKeyPressed(client.getWindow().getHandle(), 82);
 
-            if (InputUtil.isKeyPressed(handle, 77)) {
-                if (!mWasDown) { mWasDown = true; SESSION.pause(); client.player.sendMessage(Text.literal("§eTracker PAUSED!"), true); }
-            } else { mWasDown = false; }
+            if (nDown && !nWasDown) {
+                SESSION.start();
+                client.player.sendMessage(Text.literal("§aTracker STARTED!"), true);
+            }
+            if (mDown && !mWasDown) {
+                SESSION.pause();
+                client.player.sendMessage(Text.literal("§eTracker PAUSED!"), true);
+            }
+            if (rDown && !rWasDown) {
+                SESSION.resetSession();
+                client.player.sendMessage(Text.literal("§cSession RESET!"), true);
+            }
 
-            if (InputUtil.isKeyPressed(handle, 82)) {
-                if (!rWasDown) { rWasDown = true; SESSION.resetSession(); client.player.sendMessage(Text.literal("§cSession RESET!"), true); }
-            } else { rWasDown = false; }
+            nWasDown = nDown;
+            mWasDown = mDown;
+            rWasDown = rDown;
         });
     }
 }
