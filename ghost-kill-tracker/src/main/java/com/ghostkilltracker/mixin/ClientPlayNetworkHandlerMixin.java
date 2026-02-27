@@ -13,9 +13,10 @@ import java.util.regex.Pattern;
 @Mixin(ClientPlayNetworkHandler.class)
 public class ClientPlayNetworkHandlerMixin {
 
-    // Fires exactly once per ghost kill from Scavenger enchant
+    // +296 Combat (1,179,689,709/0) - shows every kill even at max level
     private static final Pattern KILL = Pattern.compile(
-        "\\+\\d+ coins per kill", Pattern.CASE_INSENSITIVE);
+        "\\+[\\d,]+ Combat \\(", Pattern.CASE_INSENSITIVE);
+
     private static final Pattern SORROW = Pattern.compile(
         "RARE DROP!.*?Sorrow", Pattern.CASE_INSENSITIVE);
     private static final Pattern PLASMA = Pattern.compile(
