@@ -3,11 +3,10 @@
   "id": "ghostkilltracker",
   "version": "${version}",
   "name": "Ghost Kill Tracker",
-  "description": "Tracks ghost kills per session: total kills, kills/h, and average coins per kill.",
+  "description": "Tracks ghost kills per session.",
   "authors": ["You"],
   "contact": {},
   "license": "MIT",
-  "icon": "assets/ghostkilltracker/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": [
@@ -18,8 +17,8 @@
     "ghostkilltracker.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.16.0",
+    "fabricloader": ">=0.17.0",
     "fabric-api": "*",
-    "minecraft": "~1.21.1"
+    "minecraft": "~1.21.10"
   }
 }
