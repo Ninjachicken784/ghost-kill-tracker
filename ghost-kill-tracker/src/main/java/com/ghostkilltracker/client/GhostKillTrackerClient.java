@@ -1,57 +1,45 @@
-package com.ghostkilltracker.mixin;
+package com.ghostkilltracker.client;
 
-import com.ghostkilltracker.client.GhostKillTrackerClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Mixin(ClientPlayNetworkHandler.class)
-public class ClientPlayNetworkHandlerMixin {
+public class GhostKillTrackerClient implements ClientModInitializer {
+    public static final String MOD_ID = "ghostkilltracker";
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final KillSession SESSION = new KillSession();
+    public static boolean hudVisible = true;
+    private boolean nWasDown = false;
+    private boolean mWasDown = false;
+    private boolean rWasDown = false;
 
-    private static final Pattern KILL = Pattern.compile(
-        "\\+[\\d,]+ Combat \\(", Pattern.CASE_INSENSITIVE);
-    private static final Pattern SORROW = Pattern.compile(
-        "RARE DROP!.*?Sorrow", Pattern.CASE_INSENSITIVE);
-    private static final Pattern PLASMA = Pattern.compile(
-        "RARE DROP!.*?Plasma", Pattern.CASE_INSENSITIVE);
+    @Override
+    public void onInitializeClient() {
+        LOGGER.info("Ghost Kill Tracker initialized!");
 
-    private long lastKillTime = 0;
-    private long lastSorrowTime = 0;
-    private long lastPlasmaTime = 0;
+        HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
+            if (hudVisible) GhostKillHud.render(drawContext, MinecraftClient.getInstance());
+        });
 
-    @Inject(method = "onGameMessage", at = @At("HEAD"))
-    private void onChat(GameMessageS2CPacket packet, CallbackInfo ci) {
-        Text msg = packet.content();
-        if (msg == null) return;
-        String raw = msg.getString();
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.player == null || client.currentScreen != null) return;
 
-        if (KILL.matcher(raw).find()) {
-            long now = System.currentTimeMillis();
-            if (now - lastKillTime > 150) {
-                lastKillTime = now;
-                GhostKillTrackerClient.SESSION.addKill();
-            }
-            return;
-        }
-        if (SORROW.matcher(raw).find()) {
-            long now = System.currentTimeMillis();
-            if (now - lastSorrowTime > 1000) {
-                lastSorrowTime = now;
-                GhostKillTrackerClient.SESSION.addSorrow();
-            }
-            return;
-        }
-        if (PLASMA.matcher(raw).find()) {
-            long now = System.currentTimeMillis();
-            if (now - lastPlasmaTime > 1000) {
-                lastPlasmaTime = now;
-                GhostKillTrackerClient.SESSION.addPlasma();
-            }
-        }
+            boolean nDown = InputUtil.isKeyPressed(client.getWindow(), 78);
+            boolean mDown = InputUtil.isKeyPressed(client.getWindow(), 77);
+            boolean rDown = InputUtil.isKeyPressed(client.getWindow(), 82);
+
+            if (nDown && !nWasDown) { SESSION.start(); client.player.sendMessage(Text.literal("§aTracker STARTED!"), true); }
+            if (mDown && !mWasDown) { SESSION.pause(); client.player.sendMessage(Text.literal("§eTracker PAUSED!"), true); }
+            if (rDown && !rWasDown) { SESSION.resetSession(); client.player.sendMessage(Text.literal("§cSession RESET!"), true); }
+
+            nWasDown = nDown;
+            mWasDown = mDown;
+            rWasDown = rDown;
+        });
     }
 }
