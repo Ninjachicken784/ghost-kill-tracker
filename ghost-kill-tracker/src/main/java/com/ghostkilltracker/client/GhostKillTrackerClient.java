@@ -3,13 +3,9 @@ package com.ghostkilltracker.client;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,55 +14,40 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static final KillSession SESSION = new KillSession();
     public static boolean hudVisible = true;
-
-    private static final KeyBinding.Category CATEGORY =
-        KeyBinding.Category.create(Identifier.of("ghostkilltracker", "main"));
-
-    private static final KeyBinding startKey = new KeyBinding(
-        "key.ghostkilltracker.start",
-        InputUtil.Type.KEYSYM,
-        GLFW.GLFW_KEY_N,
-        CATEGORY
-    );
-    private static final KeyBinding pauseKey = new KeyBinding(
-        "key.ghostkilltracker.pause",
-        InputUtil.Type.KEYSYM,
-        GLFW.GLFW_KEY_M,
-        CATEGORY
-    );
-    private static final KeyBinding resetKey = new KeyBinding(
-        "key.ghostkilltracker.reset",
-        InputUtil.Type.KEYSYM,
-        GLFW.GLFW_KEY_R,
-        CATEGORY
-    );
+    private boolean nWasDown = false;
+    private boolean mWasDown = false;
+    private boolean rWasDown = false;
 
     @Override
     public void onInitializeClient() {
         LOGGER.info("Ghost Kill Tracker initialized!");
-
-        KeyBindingHelper.registerKeyBinding(startKey);
-        KeyBindingHelper.registerKeyBinding(pauseKey);
-        KeyBindingHelper.registerKeyBinding(resetKey);
 
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
             if (hudVisible) GhostKillHud.render(drawContext, MinecraftClient.getInstance());
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player == null) return;
-            while (startKey.wasPressed()) {
+            if (client.player == null || client.currentScreen != null) return;
+
+            boolean nDown = InputUtil.isKeyPressed(client.getWindow(), 78);
+            boolean mDown = InputUtil.isKeyPressed(client.getWindow(), 77);
+            boolean rDown = InputUtil.isKeyPressed(client.getWindow(), 82);
+
+            if (nDown && !nWasDown) {
                 SESSION.start();
                 client.player.sendMessage(Text.literal("§aTracker STARTED!"), true);
             }
-            while (pauseKey.wasPressed()) {
+            if (mDown && !mWasDown) {
                 SESSION.pause();
                 client.player.sendMessage(Text.literal("§eTracker PAUSED!"), true);
             }
-            while (resetKey.wasPressed()) {
+            if (rDown && !rWasDown) {
                 SESSION.resetSession();
                 client.player.sendMessage(Text.literal("§cSession RESET!"), true);
             }
+            nWasDown = nDown;
+            mWasDown = mDown;
+            rWasDown = rDown;
         });
     }
 }
