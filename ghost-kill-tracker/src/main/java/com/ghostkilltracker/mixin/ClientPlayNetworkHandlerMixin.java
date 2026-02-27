@@ -13,11 +13,15 @@ import java.util.regex.Pattern;
 @Mixin(ClientPlayNetworkHandler.class)
 public class ClientPlayNetworkHandlerMixin {
 
+    // Fires exactly once per ghost kill from Scavenger enchant
+    private static final Pattern KILL = Pattern.compile(
+        "\\+\\d+ coins per kill", Pattern.CASE_INSENSITIVE);
     private static final Pattern SORROW = Pattern.compile(
         "RARE DROP!.*?Sorrow", Pattern.CASE_INSENSITIVE);
     private static final Pattern PLASMA = Pattern.compile(
         "RARE DROP!.*?Plasma", Pattern.CASE_INSENSITIVE);
 
+    private long lastKillTime = 0;
     private long lastSorrowTime = 0;
     private long lastPlasmaTime = 0;
 
@@ -27,6 +31,14 @@ public class ClientPlayNetworkHandlerMixin {
         if (msg == null) return;
         String raw = msg.getString();
 
+        if (KILL.matcher(raw).find()) {
+            long now = System.currentTimeMillis();
+            if (now - lastKillTime > 200) {
+                lastKillTime = now;
+                GhostKillTrackerClient.SESSION.addKill();
+            }
+            return;
+        }
         if (SORROW.matcher(raw).find()) {
             long now = System.currentTimeMillis();
             if (now - lastSorrowTime > 1000) {
