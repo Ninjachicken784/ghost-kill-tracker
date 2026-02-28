@@ -35,7 +35,7 @@ public class ClientPlayNetworkHandlerMixin {
             if (now - lastSorrowTime > 1000) {
                 lastSorrowTime = now;
                 GhostKillTrackerClient.SESSION.addSorrow();
-                DropNotification.show("§5RARE DROP! §dSorrow §7(+§d" + sm.group(1) + " ✦ Magic Find§7)");
+                DropNotification.show("§6§lRARE DROP! §5§lSorrow §b(+§b" + sm.group(1) + " ✦ Magic Find§b)");
             }
             return;
         }
@@ -46,7 +46,7 @@ public class ClientPlayNetworkHandlerMixin {
             if (now - lastPlasmaTime > 1000) {
                 lastPlasmaTime = now;
                 GhostKillTrackerClient.SESSION.addPlasma();
-                DropNotification.show("§6RARE DROP! §bPlasma §7(+§b" + pm.group(1) + " ✦ Magic Find§7)");
+                DropNotification.show("§6§lRARE DROP! §b§lPlasma §b(+§b" + pm.group(1) + " ✦ Magic Find§b)");
             }
         }
     }
