@@ -21,7 +21,6 @@ public class GhostTrackerEditScreen extends Screen {
             width / 2, height - 20, 0xFFFFFF);
     }
 
-    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         int hx = GhostKillTrackerClient.hudX;
         int hy = GhostKillTrackerClient.hudY;
@@ -33,7 +32,6 @@ public class GhostTrackerEditScreen extends Screen {
         return true;
     }
 
-    @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         if (dragging) {
             GhostKillTrackerClient.hudX = (int) mouseX - dragOffsetX;
@@ -42,7 +40,6 @@ public class GhostTrackerEditScreen extends Screen {
         return true;
     }
 
-    @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         dragging = false;
         return true;
