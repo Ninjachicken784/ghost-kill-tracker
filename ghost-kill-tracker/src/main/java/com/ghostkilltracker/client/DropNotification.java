@@ -7,27 +7,17 @@ import net.minecraft.text.Text;
 public class DropNotification {
     private static Text message = null;
     private static long showUntil = 0;
-    private static final int DURATION_MS = 4000;
 
     public static void show(Text msg) {
         message = msg;
-        showUntil = System.currentTimeMillis() + DURATION_MS;
+        showUntil = System.currentTimeMillis() + 2000;
     }
 
     public static void render(DrawContext ctx, MinecraftClient client) {
-        if (System.currentTimeMillis() > showUntil || message == null) return;
-
-        int screenW = client.getWindow().getScaledWidth();
-        int screenH = client.getWindow().getScaledHeight();
+        if (message == null || System.currentTimeMillis() > showUntil) return;
+        int cx = client.getWindow().getScaledWidth() / 2;
+        int cy = client.getWindow().getScaledHeight() / 3;
         int textW = client.textRenderer.getWidth(message);
-        int cx = (screenW - textW) / 2;
-        int cy = screenH / 3;
-
-        // Draw offset copies to make it appear thicker/bigger
-        ctx.drawTextWithShadow(client.textRenderer, message, cx - 1, cy - 1, 0xFFFFFFFF);
-        ctx.drawTextWithShadow(client.textRenderer, message, cx + 1, cy - 1, 0xFFFFFFFF);
-        ctx.drawTextWithShadow(client.textRenderer, message, cx - 1, cy + 1, 0xFFFFFFFF);
-        ctx.drawTextWithShadow(client.textRenderer, message, cx + 1, cy + 1, 0xFFFFFFFF);
-        ctx.drawTextWithShadow(client.textRenderer, message, cx,     cy,     0xFFFFFFFF);
+        ctx.drawTextWithShadow(client.textRenderer, message, cx - textW / 2, cy, 0xFFFFFFFF);
     }
 }
