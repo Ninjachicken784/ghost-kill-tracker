@@ -19,26 +19,19 @@ public class DropNotification {
 
         int screenW = client.getWindow().getScaledWidth();
         int screenH = client.getWindow().getScaledHeight();
-        int cx = screenW / 2;
-        int cy = screenH / 3;
-
-        float scale = 2.5f;
-        var matrices = ctx.getMatrices();
-        matrices.push();
-        matrices.translate(cx, cy, 0);
-        matrices.scale(scale, scale, 1.0f);
 
         Text text = Text.literal(message);
         int textW = client.textRenderer.getWidth(text);
+        int cx = (screenW - textW) / 2;
+        int cy = screenH / 3;
 
-        // Draw thick/bold by rendering multiple times with offsets
+        // Draw 9 times offset to fake bold/thick
         for (int ox = -1; ox <= 1; ox++) {
             for (int oy = -1; oy <= 1; oy++) {
-                ctx.drawTextWithShadow(client.textRenderer, text, -textW / 2 + ox, -4 + oy, 0xFF000000);
+                ctx.drawTextWithShadow(client.textRenderer, text, cx + ox, cy + oy, 0xFF000000);
             }
         }
-        ctx.drawTextWithShadow(client.textRenderer, text, -textW / 2, -4, 0xFFFFFFFF);
-
-        matrices.pop();
+        // Draw main text on top
+        ctx.drawTextWithShadow(client.textRenderer, text, cx, cy, 0xFFFFFFFF);
     }
 }
