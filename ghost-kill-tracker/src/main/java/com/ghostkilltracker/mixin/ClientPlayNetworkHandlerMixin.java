@@ -33,7 +33,7 @@ public class ClientPlayNetworkHandlerMixin {
             if (now - lastSorrowTime > 1000) {
                 lastSorrowTime = now;
                 GhostKillTrackerClient.SESSION.addSorrow();
-                DropNotification.show(msg);
+                if (GhostKillTrackerClient.dropsEnabled) DropNotification.show(msg);
             }
             return;
         }
@@ -43,7 +43,7 @@ public class ClientPlayNetworkHandlerMixin {
             if (now - lastPlasmaTime > 1000) {
                 lastPlasmaTime = now;
                 GhostKillTrackerClient.SESSION.addPlasma();
-                DropNotification.show(msg);
+                if (GhostKillTrackerClient.dropsEnabled) DropNotification.show(msg);
             }
         }
     }
