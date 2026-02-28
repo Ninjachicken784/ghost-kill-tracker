@@ -1,7 +1,7 @@
 package com.ghostkilltracker.mixin;
 
-import com.ghostkilltracker.client.GhostKillTrackerClient;
 import com.ghostkilltracker.client.DropNotification;
+import com.ghostkilltracker.client.GhostKillTrackerClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.text.Text;
@@ -35,8 +35,7 @@ public class ClientPlayNetworkHandlerMixin {
             if (now - lastSorrowTime > 1000) {
                 lastSorrowTime = now;
                 GhostKillTrackerClient.SESSION.addSorrow();
-                String mf = sm.group(1);
-                DropNotification.show("§5✦ SORROW DROP!", "§d+" + mf + " Magic Find");
+                DropNotification.show("§5RARE DROP! §dSorrow §7(+§d" + sm.group(1) + " ✦ Magic Find§7)");
             }
             return;
         }
@@ -47,8 +46,7 @@ public class ClientPlayNetworkHandlerMixin {
             if (now - lastPlasmaTime > 1000) {
                 lastPlasmaTime = now;
                 GhostKillTrackerClient.SESSION.addPlasma();
-                String mf = pm.group(1);
-                DropNotification.show("§b⚡ PLASMA DROP!", "§3+" + mf + " Magic Find");
+                DropNotification.show("§6RARE DROP! §bPlasma §7(+§b" + pm.group(1) + " ✦ Magic Find§7)");
             }
         }
     }
