@@ -2,7 +2,6 @@ package com.ghostkilltracker.client;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
@@ -19,14 +18,13 @@ public class GhostTrackerEditScreen extends Screen {
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
         super.render(ctx, mouseX, mouseY, delta);
 
-        long handle = client.getWindow().getHandle();
-        boolean mouseDown = InputUtil.isKeyPressed(handle, GLFW.GLFW_MOUSE_BUTTON_1);
+        boolean mouseDown = GLFW.glfwGetMouseButton(
+            client.getWindow().getHandle(), GLFW.GLFW_MOUSE_BUTTON_1) == GLFW.GLFW_PRESS;
 
         int hx = GhostKillTrackerClient.hudX;
         int hy = GhostKillTrackerClient.hudY;
 
         if (mouseDown && !lastMouseDown) {
-            // Start drag
             if (mouseX >= hx && mouseX <= hx + 165 && mouseY >= hy && mouseY <= hy + 220) {
                 dragging = true;
                 dragOffsetX = mouseX - hx;
@@ -34,9 +32,7 @@ public class GhostTrackerEditScreen extends Screen {
             }
         }
 
-        if (!mouseDown) {
-            dragging = false;
-        }
+        if (!mouseDown) dragging = false;
 
         if (dragging && mouseDown) {
             GhostKillTrackerClient.hudX = mouseX - dragOffsetX;
@@ -47,7 +43,6 @@ public class GhostTrackerEditScreen extends Screen {
 
         GhostKillHud.render(ctx, client);
 
-        // Highlight border when hovering
         ctx.fill(GhostKillTrackerClient.hudX - 1, GhostKillTrackerClient.hudY - 1,
                  GhostKillTrackerClient.hudX + 166, GhostKillTrackerClient.hudY + 1, 0xFFFFFF00);
 
