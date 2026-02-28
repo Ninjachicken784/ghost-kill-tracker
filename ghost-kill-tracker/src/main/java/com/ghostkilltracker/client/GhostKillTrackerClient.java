@@ -20,6 +20,7 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static final KillSession SESSION = new KillSession();
     public static boolean hudVisible = true;
+    public static boolean dropsEnabled = true;
     public static int hudX = -1;
     public static int hudY = 5;
 
@@ -34,8 +35,9 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public void onInitializeClient() {
         LOGGER.info("Ghost Kill Tracker initialized!");
 
-        // /ghosttracker to toggle HUD
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+
+            // /ghosttracker - toggle HUD
             dispatcher.register(ClientCommandManager.literal("ghosttracker")
                 .executes(ctx -> {
                     hudVisible = !hudVisible;
@@ -43,7 +45,8 @@ public class GhostKillTrackerClient implements ClientModInitializer {
                     return 1;
                 })
             );
-            // /editGhostTracker to open drag screen
+
+            // /editGhostTracker - open drag screen
             dispatcher.register(ClientCommandManager.literal("editGhostTracker")
                 .executes(ctx -> {
                     MinecraftClient.getInstance().send(() ->
@@ -51,11 +54,42 @@ public class GhostKillTrackerClient implements ClientModInitializer {
                     return 1;
                 })
             );
+
+            // /ghostdrops enable|disable
+            dispatcher.register(ClientCommandManager.literal("ghostdrops")
+                .then(ClientCommandManager.literal("enable")
+                    .executes(ctx -> {
+                        dropsEnabled = true;
+                        ctx.getSource().sendFeedback(Text.literal("§aGhost drop notifications ENABLED!"));
+                        return 1;
+                    })
+                )
+                .then(ClientCommandManager.literal("disable")
+                    .executes(ctx -> {
+                        dropsEnabled = false;
+                        ctx.getSource().sendFeedback(Text.literal("§cGhost drop notifications DISABLED!"));
+                        return 1;
+                    })
+                )
+            );
+
+            // /ghostTrackerCommands - list all commands
+            dispatcher.register(ClientCommandManager.literal("ghostTrackerCommands")
+                .executes(ctx -> {
+                    ctx.getSource().sendFeedback(Text.literal("§e--- Ghost Tracker Commands ---"));
+                    ctx.getSource().sendFeedback(Text.literal("§a/ghosttracker §7- Toggle HUD on/off"));
+                    ctx.getSource().sendFeedback(Text.literal("§a/editGhostTracker §7- Drag HUD to reposition"));
+                    ctx.getSource().sendFeedback(Text.literal("§a/ghostdrops enable §7- Enable drop notifications"));
+                    ctx.getSource().sendFeedback(Text.literal("§a/ghostdrops disable §7- Disable drop notifications"));
+                    ctx.getSource().sendFeedback(Text.literal("§a/ghostTrackerCommands §7- Show this list"));
+                    ctx.getSource().sendFeedback(Text.literal("§e[N] §7Start  §e[M] §7Pause  §e[R] §7Reset session"));
+                    return 1;
+                })
+            );
         });
 
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
             MinecraftClient client = MinecraftClient.getInstance();
-            // Set default X position if not set
             if (hudX == -1) hudX = client.getWindow().getScaledWidth() - 165;
             if (hudVisible) GhostKillHud.render(drawContext, client);
             DropNotification.render(drawContext, client);
