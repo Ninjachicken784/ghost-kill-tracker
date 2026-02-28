@@ -14,10 +14,10 @@ public class GhostTrackerEditScreen extends Screen {
 
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
-        renderBackground(ctx, mouseX, mouseY, delta);
+        super.render(ctx, mouseX, mouseY, delta);
         GhostKillHud.render(ctx, client);
         ctx.drawCenteredTextWithShadow(textRenderer,
-            Text.literal("§eDrag the tracker to reposition. Press ESC to save."),
+            Text.literal("§eDrag the tracker. Press ESC to save."),
             width / 2, height - 20, 0xFFFFFF);
     }
 
