@@ -29,14 +29,17 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public void onInitializeClient() {
         LOGGER.info("Ghost Kill Tracker initialized!");
 
+        GhostTrackerCommand.register();
+
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
-            if (hudVisible) GhostKillHud.render(drawContext, MinecraftClient.getInstance());
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (hudVisible) GhostKillHud.render(drawContext, client);
+            DropNotification.render(drawContext, client);
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null || client.currentScreen != null) return;
 
-            // Read gauntlet once per second (20 ticks)
             tickCounter++;
             if (tickCounter >= 20) {
                 tickCounter = 0;
@@ -51,7 +54,6 @@ public class GhostKillTrackerClient implements ClientModInitializer {
                                     int kills = Integer.parseInt(m.group(1).replace(",", ""));
                                     if (lastGauntletKills >= 0 && kills > lastGauntletKills) {
                                         int diff = kills - lastGauntletKills;
-                                        // Max 20 kills per second is realistic, ignore lag spikes
                                         if (diff <= 20) {
                                             for (int i = 0; i < diff; i++) SESSION.addKill();
                                         }
