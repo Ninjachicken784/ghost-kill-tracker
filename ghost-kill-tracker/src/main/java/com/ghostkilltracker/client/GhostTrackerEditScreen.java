@@ -2,11 +2,14 @@ package com.ghostkilltracker.client;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
+import org.lwjgl.glfw.GLFW;
 
 public class GhostTrackerEditScreen extends Screen {
     private boolean dragging = false;
     private int dragOffsetX, dragOffsetY;
+    private boolean lastMouseDown = false;
 
     public GhostTrackerEditScreen() {
         super(Text.literal("Edit Ghost Tracker"));
@@ -15,34 +18,42 @@ public class GhostTrackerEditScreen extends Screen {
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
         super.render(ctx, mouseX, mouseY, delta);
+
+        long handle = client.getWindow().getHandle();
+        boolean mouseDown = InputUtil.isKeyPressed(handle, GLFW.GLFW_MOUSE_BUTTON_1);
+
+        int hx = GhostKillTrackerClient.hudX;
+        int hy = GhostKillTrackerClient.hudY;
+
+        if (mouseDown && !lastMouseDown) {
+            // Start drag
+            if (mouseX >= hx && mouseX <= hx + 165 && mouseY >= hy && mouseY <= hy + 220) {
+                dragging = true;
+                dragOffsetX = mouseX - hx;
+                dragOffsetY = mouseY - hy;
+            }
+        }
+
+        if (!mouseDown) {
+            dragging = false;
+        }
+
+        if (dragging && mouseDown) {
+            GhostKillTrackerClient.hudX = mouseX - dragOffsetX;
+            GhostKillTrackerClient.hudY = mouseY - dragOffsetY;
+        }
+
+        lastMouseDown = mouseDown;
+
         GhostKillHud.render(ctx, client);
+
+        // Highlight border when hovering
+        ctx.fill(GhostKillTrackerClient.hudX - 1, GhostKillTrackerClient.hudY - 1,
+                 GhostKillTrackerClient.hudX + 166, GhostKillTrackerClient.hudY + 1, 0xFFFFFF00);
+
         ctx.drawCenteredTextWithShadow(textRenderer,
             Text.literal("§eDrag the tracker. Press ESC to save."),
             width / 2, height - 20, 0xFFFFFF);
-    }
-
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        int hx = GhostKillTrackerClient.hudX;
-        int hy = GhostKillTrackerClient.hudY;
-        if (mouseX >= hx && mouseX <= hx + 165 && mouseY >= hy && mouseY <= hy + 220) {
-            dragging = true;
-            dragOffsetX = (int) mouseX - hx;
-            dragOffsetY = (int) mouseY - hy;
-        }
-        return true;
-    }
-
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if (dragging) {
-            GhostKillTrackerClient.hudX = (int) mouseX - dragOffsetX;
-            GhostKillTrackerClient.hudY = (int) mouseY - dragOffsetY;
-        }
-        return true;
-    }
-
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        dragging = false;
-        return true;
     }
 
     @Override
