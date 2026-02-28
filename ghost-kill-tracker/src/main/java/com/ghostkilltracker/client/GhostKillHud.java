@@ -22,33 +22,31 @@ public class GhostKillHud {
     public static void render(DrawContext ctx, MinecraftClient client) {
         if (client.player == null) return;
         KillSession s = GhostKillTrackerClient.SESSION;
-        int x = client.getWindow().getScaledWidth() - BOX_W - 5;
-        int y = 5;
+        int x = GhostKillTrackerClient.hudX;
+        int y = GhostKillTrackerClient.hudY;
 
         String status = !s.isRunning() ? "§7[STOPPED]" : s.isPaused() ? "§c[PAUSED]" : "§a[RUNNING]";
         ctx.drawTextWithShadow(client.textRenderer, Text.literal(status), x, y, 0xFFFFFFFF);
         y += 12;
 
-        // Total box
         drawBox(ctx, x, y, BOX_W, BOX_H);
         ctx.drawCenteredTextWithShadow(client.textRenderer, Text.literal("§fTotal"), x + BOX_W / 2, y + PAD, TITLE_COLOR);
         int ly = y + PAD + LINE_H + 2;
-        drawRow(ctx, client, x, ly,              "Kills",    DF0.format(s.getTotalKills()));
-        drawRow(ctx, client, x, ly + LINE_H,     "Kills/h",  DF1.format(s.getTotalKillsPerHour()));
-        drawRow(ctx, client, x, ly + LINE_H * 2, "Sorrow",   DF0.format(s.getTotalSorrow()));
-        drawRow(ctx, client, x, ly + LINE_H * 3, "Plasma",   DF0.format(s.getTotalPlasma()));
-        drawRow(ctx, client, x, ly + LINE_H * 4, "Uptime",   s.getTotalUptime());
+        drawRow(ctx, client, x, ly,              "Kills",   DF0.format(s.getTotalKills()));
+        drawRow(ctx, client, x, ly + LINE_H,     "Kills/h", DF1.format(s.getTotalKillsPerHour()));
+        drawRow(ctx, client, x, ly + LINE_H * 2, "Sorrow",  DF0.format(s.getTotalSorrow()));
+        drawRow(ctx, client, x, ly + LINE_H * 3, "Plasma",  DF0.format(s.getTotalPlasma()));
+        drawRow(ctx, client, x, ly + LINE_H * 4, "Uptime",  s.getTotalUptime());
         y += BOX_H + GAP;
 
-        // Session box
         drawBox(ctx, x, y, BOX_W, BOX_H);
         ctx.drawCenteredTextWithShadow(client.textRenderer, Text.literal("§fSession"), x + BOX_W / 2, y + PAD, TITLE_COLOR);
         ly = y + PAD + LINE_H + 2;
-        drawRow(ctx, client, x, ly,              "Kills",    DF0.format(s.getSessionKills()));
-        drawRow(ctx, client, x, ly + LINE_H,     "Kills/h",  DF1.format(s.getSessionKillsPerHour()));
-        drawRow(ctx, client, x, ly + LINE_H * 2, "Sorrow",   DF0.format(s.getSessionSorrow()));
-        drawRow(ctx, client, x, ly + LINE_H * 3, "Plasma",   DF0.format(s.getSessionPlasma()));
-        drawRow(ctx, client, x, ly + LINE_H * 4, "Uptime",   s.getSessionUptime());
+        drawRow(ctx, client, x, ly,              "Kills",   DF0.format(s.getSessionKills()));
+        drawRow(ctx, client, x, ly + LINE_H,     "Kills/h", DF1.format(s.getSessionKillsPerHour()));
+        drawRow(ctx, client, x, ly + LINE_H * 2, "Sorrow",  DF0.format(s.getSessionSorrow()));
+        drawRow(ctx, client, x, ly + LINE_H * 3, "Plasma",  DF0.format(s.getSessionPlasma()));
+        drawRow(ctx, client, x, ly + LINE_H * 4, "Uptime",  s.getSessionUptime());
         y += BOX_H + GAP;
 
         ctx.drawTextWithShadow(client.textRenderer, Text.literal("§7[N] Start  [M] Pause  [R] Reset"), x, y, 0xFFAAAAAA);
