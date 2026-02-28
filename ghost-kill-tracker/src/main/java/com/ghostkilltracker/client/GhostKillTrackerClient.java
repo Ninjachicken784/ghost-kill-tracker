@@ -3,6 +3,8 @@ package com.ghostkilltracker.client;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.component.DataComponentTypes;
@@ -18,6 +20,9 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static final KillSession SESSION = new KillSession();
     public static boolean hudVisible = true;
+    public static int hudX = -1;
+    public static int hudY = 5;
+
     private boolean nWasDown = false;
     private boolean mWasDown = false;
     private boolean rWasDown = false;
@@ -29,10 +34,29 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public void onInitializeClient() {
         LOGGER.info("Ghost Kill Tracker initialized!");
 
-        GhostTrackerCommand.register();
+        // /ghosttracker to toggle HUD
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            dispatcher.register(ClientCommandManager.literal("ghosttracker")
+                .executes(ctx -> {
+                    hudVisible = !hudVisible;
+                    ctx.getSource().sendFeedback(Text.literal("Ghost Tracker HUD: " + (hudVisible ? "§aON" : "§cOFF")));
+                    return 1;
+                })
+            );
+            // /editGhostTracker to open drag screen
+            dispatcher.register(ClientCommandManager.literal("editGhostTracker")
+                .executes(ctx -> {
+                    MinecraftClient.getInstance().send(() ->
+                        MinecraftClient.getInstance().setScreen(new GhostTrackerEditScreen()));
+                    return 1;
+                })
+            );
+        });
 
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
             MinecraftClient client = MinecraftClient.getInstance();
+            // Set default X position if not set
+            if (hudX == -1) hudX = client.getWindow().getScaledWidth() - 165;
             if (hudVisible) GhostKillHud.render(drawContext, client);
             DropNotification.render(drawContext, client);
         });
