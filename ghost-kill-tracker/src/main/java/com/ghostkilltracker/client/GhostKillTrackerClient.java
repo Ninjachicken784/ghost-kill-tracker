@@ -17,27 +17,28 @@ import java.util.regex.Pattern;
 public class GhostKillTrackerClient implements ClientModInitializer {
     public static final KillSession SESSION = new KillSession();
     
-    // --- ADDED BACK MISSING VARIABLES FOR MIXINS ---
+    // Toggles and persistence
     public static boolean hudVisible = true;
     public static boolean dropsEnabled = true;
-    
-    // Independent Toggles for the Menu
     public static boolean ghostEnabled = true;
     public static boolean scathaEnabled = true;
     
     public static int hudX = 10;
     public static int hudY = 10;
 
+    // Worm Stats
     public static int wormCount = 0;
     public static double wormRate = 0.0;
     private static final String WORM_MSG = "You hear the sound of something approaching...";
 
-    private boolean nWasDown = false, rWasDown = false;
+    private boolean nWasDown = false;
+    private boolean rWasDown = false;
     private int lastGauntletKills = -1;
     private static final Pattern KILLS_PATTERN = Pattern.compile("Kills:\\s*([\\d,]+)");
 
     @Override
     public void onInitializeClient() {
+        // Chat listener for Worms
         ClientReceiveMessageEvents.CHAT.register((message, signedMessage, sender, params, receptionTimestamp) -> {
             if (scathaEnabled && message.getString().contains(WORM_MSG)) {
                 wormCount++;
@@ -46,6 +47,7 @@ public class GhostKillTrackerClient implements ClientModInitializer {
             }
         });
 
+        // Register /sbp command
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             dispatcher.register(ClientCommandManager.literal("sbp")
                 .executes(ctx -> {
@@ -56,16 +58,18 @@ public class GhostKillTrackerClient implements ClientModInitializer {
             );
         });
 
+        // Render Loop
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
             if (hudVisible) {
                 GhostKillHud.render(drawContext, MinecraftClient.getInstance());
             }
         });
 
+        // Logic Tick
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null || client.currentScreen != null) return;
             
-            // FIXED getWorld() to work with 1.21
+            // Ghost Tracking logic
             if (ghostEnabled && client.world.getTime() % 20 == 0) {
                 ItemStack held = client.player.getMainHandStack();
                 if (!held.isEmpty() && held.contains(DataComponentTypes.LORE)) {
@@ -75,7 +79,9 @@ public class GhostKillTrackerClient implements ClientModInitializer {
                             int kills = Integer.parseInt(m.group(1).replace(",", ""));
                             if (lastGauntletKills >= 0 && kills > lastGauntletKills) {
                                 int diff = kills - lastGauntletKills;
-                                if (diff <= 20) for (int i = 0; i < diff; i++) SESSION.addKill();
+                                if (diff <= 20) {
+                                    for (int i = 0; i < diff; i++) SESSION.addKill();
+                                }
                             }
                             lastGauntletKills = kills;
                             break;
@@ -84,11 +90,23 @@ public class GhostKillTrackerClient implements ClientModInitializer {
                 }
             }
 
-            boolean nDown = InputUtil.isKeyPressed(client.getWindow(), 78);
-            boolean rDown = InputUtil.isKeyPressed(client.getWindow(), 82);
-            if (nDown && !nWasDown) { SESSION.start(); client.player.sendMessage(Text.literal("§aTracker Started!"), true); }
-            if (rDown && !rWasDown) { SESSION.resetSession(); wormCount = 0; wormRate = 0; client.player.sendMessage(Text.literal("§cReset!"), true); }
-            nWasDown = nDown; rWasDown = rDown;
+            // Controls
+            boolean nDown = InputUtil.isKeyPressed(client.getWindow(), 78); // N
+            boolean rDown = InputUtil.isKeyPressed(client.getWindow(), 82); // R
+
+            if (nDown && !nWasDown) {
+                SESSION.start();
+                client.player.sendMessage(Text.literal("§aTracker Started!"), true);
+            }
+            if (rDown && !rWasDown) {
+                SESSION.resetSession();
+                wormCount = 0;
+                wormRate = 0;
+                client.player.sendMessage(Text.literal("§cSession Reset!"), true);
+            }
+
+            nWasDown = nDown;
+            rWasDown = rDown;
         });
     }
 }
