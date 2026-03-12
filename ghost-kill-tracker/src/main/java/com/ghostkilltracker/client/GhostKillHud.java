@@ -1,81 +1,78 @@
 package com.ghostkilltracker.client;
 
-public class KillSession {
-    private int totalKills = 0;
-    private int sessionKills = 0;
-    private long startTime = System.currentTimeMillis();
-    private boolean running = false;
-    private boolean paused = false;
-    private long pausedAt = 0;
-    private long totalPausedTime = 0;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.text.Text;
+import java.text.DecimalFormat;
 
-    // --- ADD THIS METHOD SO THE OTHER FILES WORK ---
-    public long getElapsedTime() {
-        if (!running) return 0;
-        long now = paused ? pausedAt : System.currentTimeMillis();
-        return (now - startTime) - totalPausedTime;
+public class GhostKillHud {
+    private static final int BG_COLOR     = 0xCC1A1A1A;
+    private static final int BORDER_COLOR = 0xFF555555;
+    private static final int TITLE_COLOR  = 0xFFFFFFFF;
+    private static final int LABEL_COLOR  = 0xFFCCCCCC;
+    private static final int VALUE_COLOR  = 0xFFFFFF55;
+    private static final DecimalFormat DF0 = new DecimalFormat("#,##0");
+    private static final DecimalFormat DF1 = new DecimalFormat("#,##0.0");
+    private static final int BOX_W  = 160;
+    private static final int BOX_H  = 84;
+    private static final int WORM_BOX_H = 40; 
+    private static final int PAD    = 6;
+    private static final int LINE_H = 11;
+    private static final int GAP    = 6;
+
+    public static void render(DrawContext ctx, MinecraftClient client) {
+        if (client.player == null) return;
+        KillSession s = GhostKillTrackerClient.SESSION;
+        int x = GhostKillTrackerClient.hudX;
+        int y = GhostKillTrackerClient.hudY;
+
+        String status = !s.isRunning() ? "§7[STOPPED]" : s.isPaused() ? "§c[PAUSED]" : "§a[RUNNING]";
+        ctx.drawTextWithShadow(client.textRenderer, Text.literal(status), x, y, 0xFFFFFFFF);
+        y += 12;
+
+        // Total Box
+        drawBox(ctx, x, y, BOX_W, BOX_H);
+        ctx.drawCenteredTextWithShadow(client.textRenderer, Text.literal("§fTotal"), x + BOX_W / 2, y + PAD, TITLE_COLOR);
+        int ly = y + PAD + LINE_H + 2;
+        drawRow(ctx, client, x, ly,              "Kills",   DF0.format(s.getTotalKills()));
+        drawRow(ctx, client, x, ly + LINE_H,     "Kills/h", DF1.format(s.getTotalKillsPerHour()));
+        drawRow(ctx, client, x, ly + LINE_H * 2, "Sorrow",  DF0.format(s.getTotalSorrow()));
+        drawRow(ctx, client, x, ly + LINE_H * 3, "Plasma",  DF0.format(s.getTotalPlasma()));
+        drawRow(ctx, client, x, ly + LINE_H * 4, "Uptime",  s.getTotalUptime());
+        y += BOX_H + GAP;
+
+        // Session Box
+        drawBox(ctx, x, y, BOX_W, BOX_H);
+        ctx.drawCenteredTextWithShadow(client.textRenderer, Text.literal("§fSession"), x + BOX_W / 2, y + PAD, TITLE_COLOR);
+        ly = y + PAD + LINE_H + 2;
+        drawRow(ctx, client, x, ly,              "Kills",   DF0.format(s.getSessionKills()));
+        drawRow(ctx, client, x, ly + LINE_H,     "Kills/h", DF1.format(s.getSessionKillsPerHour()));
+        drawRow(ctx, client, x, ly + LINE_H * 2, "Sorrow",  DF0.format(s.getSessionSorrow()));
+        drawRow(ctx, client, x, ly + LINE_H * 3, "Plasma",  DF0.format(s.getSessionPlasma()));
+        drawRow(ctx, client, x, ly + LINE_H * 4, "Uptime",  s.getSessionUptime());
+        y += BOX_H + GAP;
+
+        // Worm Box
+        drawBox(ctx, x, y, BOX_W, WORM_BOX_H);
+        ctx.drawCenteredTextWithShadow(client.textRenderer, Text.literal("§eWorm Tracker"), x + BOX_W / 2, y + PAD, 0xFFFFFF55);
+        ly = y + PAD + LINE_H + 2;
+        drawRow(ctx, client, x, ly,              "Worms",   DF0.format(GhostKillTrackerClient.wormCount));
+        drawRow(ctx, client, x, ly + LINE_H,     "Worms/h", DF1.format(GhostKillTrackerClient.wormRate));
+        y += WORM_BOX_H + GAP;
+
+        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§7[N] Start  [M] Pause  [R] Reset"), x, y, 0xFFAAAAAA);
     }
 
-    public void addKill() {
-        if (running && !paused) {
-            totalKills++;
-            sessionKills++;
-        }
+    private static void drawRow(DrawContext ctx, MinecraftClient client, int boxX, int y, String label, String value) {
+        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§7" + label), boxX + PAD, y, LABEL_COLOR);
+        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§e" + value), boxX + 100, y, VALUE_COLOR);
     }
 
-    public void start() {
-        if (!running) {
-            startTime = System.currentTimeMillis();
-            totalPausedTime = 0;
-            running = true;
-            paused = false;
-        } else if (paused) {
-            totalPausedTime += (System.currentTimeMillis() - pausedAt);
-            paused = false;
-        }
-    }
-
-    public void pause() {
-        if (running && !paused) {
-            paused = true;
-            pausedAt = System.currentTimeMillis();
-        }
-    }
-
-    public void resetSession() {
-        sessionKills = 0;
-        startTime = System.currentTimeMillis();
-        totalPausedTime = 0;
-        paused = false;
-    }
-
-    public int getTotalKills() { return totalKills; }
-    public int getSessionKills() { return sessionKills; }
-    public boolean isRunning() { return running; }
-    public boolean isPaused() { return paused; }
-
-    public double getTotalKillsPerHour() {
-        long elapsed = getElapsedTime();
-        return (totalKills / (Math.max(1, elapsed) / 3600000.0));
-    }
-
-    public double getSessionKillsPerHour() {
-        long elapsed = getElapsedTime();
-        return (sessionKills / (Math.max(1, elapsed) / 3600000.0));
-    }
-
-    // Placeholders for your Sorrow/Plasma logic
-    public int getTotalSorrow() { return 0; }
-    public int getTotalPlasma() { return 0; }
-    public int getSessionSorrow() { return 0; }
-    public int getSessionPlasma() { return 0; }
-    public String getTotalUptime() { return formatTime(getElapsedTime()); }
-    public String getSessionUptime() { return formatTime(getElapsedTime()); }
-
-    private String formatTime(long ms) {
-        long sec = (ms / 1000) % 60;
-        long min = (ms / (1000 * 60)) % 60;
-        long hr = (ms / (1000 * 60 * 60));
-        return String.format("%02d:%02d:%02d", hr, min, sec);
+    private static void drawBox(DrawContext ctx, int x, int y, int w, int h) {
+        ctx.fill(x, y, x + w, y + h, BG_COLOR);
+        ctx.fill(x,         y,         x + w, y + 1,     BORDER_COLOR);
+        ctx.fill(x,         y + h - 1, x + w, y + h,     BORDER_COLOR);
+        ctx.fill(x,         y,         x + 1, y + h,     BORDER_COLOR);
+        ctx.fill(x + w - 1, y,         x + w, y + h,     BORDER_COLOR);
     }
 }
