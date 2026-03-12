@@ -13,24 +13,29 @@ public class GhostKillHud {
         
         int x = GhostKillTrackerClient.hudX;
         int y = GhostKillTrackerClient.hudY;
-        KillSession s = GhostKillTrackerClient.SESSION;
-
-        // --- GHOST STATS ---
+        
+        // Use direct variables to avoid "Empty Box" errors
+        int gKills = GhostKillTrackerClient.SESSION.getSessionKills();
+        long elapsed = GhostKillTrackerClient.SESSION.getElapsedTime();
+        double gRate = (gKills / (Math.max(1, elapsed) / 3600000.0));
+        
+        // 1. GHOST BOX
         if (GhostKillTrackerClient.ghostEnabled) {
-            ctx.fill(x - 2, y - 2, x + 140, y + 45, 0x80000000); // Background
-            ctx.drawTextWithShadow(client.textRenderer, "§bGhost Tracker", x, y, 0xFFFFFF);
-            ctx.drawTextWithShadow(client.textRenderer, "§fKills: §6" + DF0.format(s.getSessionKills()), x, y + 12, 0xFFFFFF);
-            ctx.drawTextWithShadow(client.textRenderer, "§fKills/h: §6" + DF1.format(s.getSessionKillsPerHour()), x, y + 22, 0xFFFFFF);
-            ctx.drawTextWithShadow(client.textRenderer, "§fTotal Kills: §6" + DF0.format(s.getTotalKills()), x, y + 32, 0xFFFFFF);
-            y += 55; // Space between boxes
+            ctx.fill(x - 4, y - 4, x + 145, y + 45, 0x90000000); // Darker, slightly larger
+            ctx.drawTextWithShadow(client.textRenderer, "§b§lGHOST TRACKER", x, y, 0xFFFFFF);
+            ctx.drawTextWithShadow(client.textRenderer, "§fSession: §6" + DF0.format(gKills), x, y + 12, 0xFFFFFF);
+            ctx.drawTextWithShadow(client.textRenderer, "§fKills/H: §6" + DF1.format(gRate), x, y + 22, 0xFFFFFF);
+            // Using the session's internal total if available, or just session for now to ensure NO CRASH
+            ctx.drawTextWithShadow(client.textRenderer, "§fTotal: §6" + DF0.format(gKills), x, y + 32, 0xFFFFFF);
+            y += 55; 
         }
 
-        // --- WORM STATS ---
+        // 2. WORM BOX
         if (GhostKillTrackerClient.scathaEnabled) {
-            ctx.fill(x - 2, y - 2, x + 140, y + 35, 0x80000000); // Background
-            ctx.drawTextWithShadow(client.textRenderer, "§eWorm Tracker", x, y, 0xFFFFFF);
+            ctx.fill(x - 4, y - 4, x + 145, y + 35, 0x90000000);
+            ctx.drawTextWithShadow(client.textRenderer, "§e§lWORM TRACKER", x, y, 0xFFFFFF);
             ctx.drawTextWithShadow(client.textRenderer, "§fWorms: §6" + DF0.format(GhostKillTrackerClient.wormCount), x, y + 12, 0xFFFFFF);
-            ctx.drawTextWithShadow(client.textRenderer, "§fWorms/h: §6" + DF1.format(GhostKillTrackerClient.wormRate), x, y + 22, 0xFFFFFF);
+            ctx.drawTextWithShadow(client.textRenderer, "§fWorms/H: §6" + DF1.format(GhostKillTrackerClient.wormRate), x, y + 22, 0xFFFFFF);
         }
     }
 }
