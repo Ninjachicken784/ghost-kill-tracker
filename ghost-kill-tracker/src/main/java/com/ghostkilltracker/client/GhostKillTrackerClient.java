@@ -13,9 +13,10 @@ import net.minecraft.text.Text;
 public class GhostKillTrackerClient implements ClientModInitializer {
     public static final KillSession SESSION = new KillSession();
     
-    // Toggles
+    // Toggles - added dropsEnabled to fix the build error
     public static boolean ghostEnabled = true;
     public static boolean scathaEnabled = true;
+    public static boolean dropsEnabled = true; 
     public static boolean hudVisible = true;
     
     // Position
@@ -72,6 +73,7 @@ public class GhostKillTrackerClient implements ClientModInitializer {
 
     public static void updateWormRate() {
         long elapsed = SESSION.getElapsedTime();
+        // Calculate Worms Per Hour
         wormRate = (wormCount / (Math.max(1, elapsed) / 3600000.0));
     }
 }
