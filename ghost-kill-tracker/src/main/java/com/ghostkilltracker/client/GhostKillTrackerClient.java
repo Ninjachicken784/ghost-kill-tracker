@@ -25,11 +25,10 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public static int hudX = -1;
     public static int hudY = 5;
 
-    // --- NEW WORM VARIABLES ---
+    // Worm Stats
     public static int wormCount = 0;
     public static double wormRate = 0.0;
     private static final String WORM_MSG = "You hear the sound of something approaching...";
-    // --------------------------
 
     private boolean nWasDown = false;
     private boolean mWasDown = false;
@@ -42,12 +41,11 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public void onInitializeClient() {
         LOGGER.info("Ghost Kill Tracker + Scatha initialized!");
 
-        // --- NEW CHAT LISTENER FOR WORMS ---
+        // Chat Listener for Worms
         ClientReceiveMessageEvents.CHAT.register((message, signedMessage, sender, params, receptionTimestamp) -> {
             if (message.getString().contains(WORM_MSG)) {
                 wormCount++;
-                // Update rate ONLY when a worm spawns
-                long elapsed = SESSION.getElapsedTime(); // Uses your existing session timer
+                long elapsed = SESSION.getElapsedTime(); 
                 wormRate = (wormCount / (Math.max(1, elapsed) / 3600000.0));
             }
         });
@@ -115,7 +113,7 @@ public class GhostKillTrackerClient implements ClientModInitializer {
             if (mDown && !mWasDown) { SESSION.pause(); client.player.sendMessage(Text.literal("§eTracker PAUSED!"), true); }
             if (rDown && !rWasDown) { 
                 SESSION.resetSession(); 
-                wormCount = 0; // Reset worms too
+                wormCount = 0;
                 wormRate = 0;
                 lastGauntletKills = -1; 
                 client.player.sendMessage(Text.literal("§cSession RESET!"), true); 
