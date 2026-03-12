@@ -2,44 +2,49 @@ package com.ghostkilltracker.client;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.text.Text;
+import java.util.Locale;
 
 public class GhostKillHud {
+    // We calculate everything here so we don't rely on other files being "ready"
     public static void render(DrawContext ctx, MinecraftClient client) {
-        if (client.player == null) return;
+        if (client.player == null || client.textRenderer == null) return;
         
+        // Use local variables so we aren't constantly pinging the other class
         int x = GhostKillTrackerClient.hudX;
         int y = GhostKillTrackerClient.hudY;
+        
+        // 1. CALCULATE GHOST STATS RIGHT HERE
+        int totalGhosts = GhostKillTrackerClient.SESSION.getSessionKills();
+        long ghostTime = GhostKillTrackerClient.SESSION.getElapsedTime();
+        double ghostHr = (totalGhosts / (Math.max(1, ghostTime) / 3600000.0));
+        String ghostText = String.format(Locale.US, "Ghost/H: %.1f", ghostHr);
 
-        try {
-            // --- GHOST ---
-            if (GhostKillTrackerClient.ghostEnabled) {
-                ctx.fill(x, y, x + 110, y + 20, 0x80000000); // Simple dark box
-                
-                // Convert the rate to a plain integer to prevent decimal crashes
-                int gRate = 0;
-                if (GhostKillTrackerClient.SESSION != null) {
-                    gRate = (int) GhostKillTrackerClient.SESSION.getSessionKillsPerHour();
-                }
-                
-                // Draw text directly, no fancy symbols
-                ctx.drawTextWithShadow(client.textRenderer, "Ghost/H: " + gRate, x + 5, y + 6, 0x00FFFF);
-                
-                y += 25; // Move down for the next box
-            }
+        // 2. CALCULATE WORM STATS RIGHT HERE
+        int totalWorms = GhostKillTrackerClient.wormCount;
+        double wormHr = (totalWorms / (Math.max(1, ghostTime) / 3600000.0));
+        String wormText = String.format(Locale.US, "Worm/H: %.1f", wormHr);
 
-            // --- WORM ---
-            if (GhostKillTrackerClient.scathaEnabled) {
-                ctx.fill(x, y, x + 110, y + 20, 0x80000000); // Simple dark box
-                
-                int wRate = (int) GhostKillTrackerClient.wormRate;
-                
-                // Draw text directly
-                ctx.drawTextWithShadow(client.textRenderer, "Worms/H: " + wRate, x + 5, y + 6, 0xFFFF00);
-            }
+        // --- DRAW GHOST BOX ---
+        if (GhostKillTrackerClient.ghostEnabled) {
+            // Background Plate
+            ctx.fill(x - 5, y - 5, x + 130, y + 25, 0x90000000); 
+            // Header
+            ctx.drawTextWithShadow(client.textRenderer, Text.literal("§b§lGHOST TRACKER"), x, y, -1);
+            // The Actual Stat you asked for
+            ctx.drawTextWithShadow(client.textRenderer, Text.literal("§f" + ghostText), x, y + 12, -1);
+            
+            y += 40; // Force space for the next one
+        }
 
-        } catch (Exception e) {
-            // IF IT FAILS, IT WILL SHOW THIS INSTEAD OF AN EMPTY BOX
-            ctx.drawTextWithShadow(client.textRenderer, "HUD CRASHED", x, y, 0xFF0000);
+        // --- DRAW WORM BOX ---
+        if (GhostKillTrackerClient.scathaEnabled) {
+            // Background Plate
+            ctx.fill(x - 5, y - 5, x + 130, y + 25, 0x90000000);
+            // Header
+            ctx.drawTextWithShadow(client.textRenderer, Text.literal("§e§lWORM TRACKER"), x, y, -1);
+            // The Actual Stat you asked for
+            ctx.drawTextWithShadow(client.textRenderer, Text.literal("§f" + wormText), x, y + 12, -1);
         }
     }
 }
