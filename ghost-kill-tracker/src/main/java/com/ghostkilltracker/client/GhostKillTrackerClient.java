@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.component.DataComponentTypes;
@@ -24,6 +25,12 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public static int hudX = -1;
     public static int hudY = 5;
 
+    // --- NEW WORM VARIABLES ---
+    public static int wormCount = 0;
+    public static double wormRate = 0.0;
+    private static final String WORM_MSG = "You hear the sound of something approaching...";
+    // --------------------------
+
     private boolean nWasDown = false;
     private boolean mWasDown = false;
     private boolean rWasDown = false;
@@ -33,11 +40,19 @@ public class GhostKillTrackerClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        LOGGER.info("Ghost Kill Tracker initialized!");
+        LOGGER.info("Ghost Kill Tracker + Scatha initialized!");
+
+        // --- NEW CHAT LISTENER FOR WORMS ---
+        ClientReceiveMessageEvents.CHAT.register((message, signedMessage, sender, params, receptionTimestamp) -> {
+            if (message.getString().contains(WORM_MSG)) {
+                wormCount++;
+                // Update rate ONLY when a worm spawns
+                long elapsed = SESSION.getElapsedTime(); // Uses your existing session timer
+                wormRate = (wormCount / (Math.max(1, elapsed) / 3600000.0));
+            }
+        });
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-
-            // /ghosttracker - toggle HUD
             dispatcher.register(ClientCommandManager.literal("ghosttracker")
                 .executes(ctx -> {
                     hudVisible = !hudVisible;
@@ -46,43 +61,10 @@ public class GhostKillTrackerClient implements ClientModInitializer {
                 })
             );
 
-            // /editGhostTracker - open drag screen
             dispatcher.register(ClientCommandManager.literal("editGhostTracker")
                 .executes(ctx -> {
                     MinecraftClient.getInstance().send(() ->
                         MinecraftClient.getInstance().setScreen(new GhostTrackerEditScreen()));
-                    return 1;
-                })
-            );
-
-            // /ghostdrops enable|disable
-            dispatcher.register(ClientCommandManager.literal("ghostdrops")
-                .then(ClientCommandManager.literal("enable")
-                    .executes(ctx -> {
-                        dropsEnabled = true;
-                        ctx.getSource().sendFeedback(Text.literal("§aGhost drop notifications ENABLED!"));
-                        return 1;
-                    })
-                )
-                .then(ClientCommandManager.literal("disable")
-                    .executes(ctx -> {
-                        dropsEnabled = false;
-                        ctx.getSource().sendFeedback(Text.literal("§cGhost drop notifications DISABLED!"));
-                        return 1;
-                    })
-                )
-            );
-
-            // /ghostTrackerCommands - list all commands
-            dispatcher.register(ClientCommandManager.literal("ghostTrackerCommands")
-                .executes(ctx -> {
-                    ctx.getSource().sendFeedback(Text.literal("§e--- Ghost Tracker Commands ---"));
-                    ctx.getSource().sendFeedback(Text.literal("§a/ghosttracker §7- Toggle HUD on/off"));
-                    ctx.getSource().sendFeedback(Text.literal("§a/editGhostTracker §7- Drag HUD to reposition"));
-                    ctx.getSource().sendFeedback(Text.literal("§a/ghostdrops enable §7- Enable drop notifications"));
-                    ctx.getSource().sendFeedback(Text.literal("§a/ghostdrops disable §7- Disable drop notifications"));
-                    ctx.getSource().sendFeedback(Text.literal("§a/ghostTrackerCommands §7- Show this list"));
-                    ctx.getSource().sendFeedback(Text.literal("§e[N] §7Start  §e[M] §7Pause  §e[R] §7Reset session"));
                     return 1;
                 })
             );
@@ -131,7 +113,13 @@ public class GhostKillTrackerClient implements ClientModInitializer {
 
             if (nDown && !nWasDown) { SESSION.start(); lastGauntletKills = -1; client.player.sendMessage(Text.literal("§aTracker STARTED!"), true); }
             if (mDown && !mWasDown) { SESSION.pause(); client.player.sendMessage(Text.literal("§eTracker PAUSED!"), true); }
-            if (rDown && !rWasDown) { SESSION.resetSession(); lastGauntletKills = -1; client.player.sendMessage(Text.literal("§cSession RESET!"), true); }
+            if (rDown && !rWasDown) { 
+                SESSION.resetSession(); 
+                wormCount = 0; // Reset worms too
+                wormRate = 0;
+                lastGauntletKills = -1; 
+                client.player.sendMessage(Text.literal("§cSession RESET!"), true); 
+            }
 
             nWasDown = nDown;
             mWasDown = mDown;
