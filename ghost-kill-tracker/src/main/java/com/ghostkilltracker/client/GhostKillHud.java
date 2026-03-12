@@ -6,73 +6,37 @@ import net.minecraft.text.Text;
 import java.text.DecimalFormat;
 
 public class GhostKillHud {
-    private static final int BG_COLOR     = 0xCC1A1A1A;
-    private static final int BORDER_COLOR = 0xFF555555;
-    private static final int TITLE_COLOR  = 0xFFFFFFFF;
-    private static final int LABEL_COLOR  = 0xFFCCCCCC;
-    private static final int VALUE_COLOR  = 0xFFFFFF55;
     private static final DecimalFormat DF0 = new DecimalFormat("#,##0");
     private static final DecimalFormat DF1 = new DecimalFormat("#,##0.0");
-    private static final int BOX_W  = 160;
-    private static final int BOX_H  = 84;
-    private static final int WORM_BOX_H = 40; 
-    private static final int PAD    = 6;
-    private static final int LINE_H = 11;
-    private static final int GAP    = 6;
 
     public static void render(DrawContext ctx, MinecraftClient client) {
         if (client.player == null) return;
-        KillSession s = GhostKillTrackerClient.SESSION;
         int x = GhostKillTrackerClient.hudX;
         int y = GhostKillTrackerClient.hudY;
 
-        String status = !s.isRunning() ? "§7[STOPPED]" : s.isPaused() ? "§c[PAUSED]" : "§a[RUNNING]";
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal(status), x, y, 0xFFFFFFFF);
-        y += 12;
+        // ONLY RENDER GHOST BOX IF ENABLED
+        if (GhostKillTrackerClient.ghostEnabled) {
+            drawBox(ctx, x, y, 160, 45, "Ghost Session");
+            drawRow(ctx, client, x, y + 15, "Kills", DF0.format(GhostKillTrackerClient.SESSION.getSessionKills()));
+            drawRow(ctx, client, x, y + 26, "Kills/h", DF1.format(GhostKillTrackerClient.SESSION.getSessionKillsPerHour()));
+            y += 55; // Move down for next box
+        }
 
-        // Total Box
-        drawBox(ctx, x, y, BOX_W, BOX_H);
-        ctx.drawCenteredTextWithShadow(client.textRenderer, Text.literal("§fTotal"), x + BOX_W / 2, y + PAD, TITLE_COLOR);
-        int ly = y + PAD + LINE_H + 2;
-        drawRow(ctx, client, x, ly,              "Kills",   DF0.format(s.getTotalKills()));
-        drawRow(ctx, client, x, ly + LINE_H,     "Kills/h", DF1.format(s.getTotalKillsPerHour()));
-        drawRow(ctx, client, x, ly + LINE_H * 2, "Sorrow",  DF0.format(s.getTotalSorrow()));
-        drawRow(ctx, client, x, ly + LINE_H * 3, "Plasma",  DF0.format(s.getTotalPlasma()));
-        drawRow(ctx, client, x, ly + LINE_H * 4, "Uptime",  s.getTotalUptime());
-        y += BOX_H + GAP;
-
-        // Session Box
-        drawBox(ctx, x, y, BOX_W, BOX_H);
-        ctx.drawCenteredTextWithShadow(client.textRenderer, Text.literal("§fSession"), x + BOX_W / 2, y + PAD, TITLE_COLOR);
-        ly = y + PAD + LINE_H + 2;
-        drawRow(ctx, client, x, ly,              "Kills",   DF0.format(s.getSessionKills()));
-        drawRow(ctx, client, x, ly + LINE_H,     "Kills/h", DF1.format(s.getSessionKillsPerHour()));
-        drawRow(ctx, client, x, ly + LINE_H * 2, "Sorrow",  DF0.format(s.getSessionSorrow()));
-        drawRow(ctx, client, x, ly + LINE_H * 3, "Plasma",  DF0.format(s.getSessionPlasma()));
-        drawRow(ctx, client, x, ly + LINE_H * 4, "Uptime",  s.getSessionUptime());
-        y += BOX_H + GAP;
-
-        // Worm Box
-        drawBox(ctx, x, y, BOX_W, WORM_BOX_H);
-        ctx.drawCenteredTextWithShadow(client.textRenderer, Text.literal("§eWorm Tracker"), x + BOX_W / 2, y + PAD, 0xFFFFFF55);
-        ly = y + PAD + LINE_H + 2;
-        drawRow(ctx, client, x, ly,              "Worms",   DF0.format(GhostKillTrackerClient.wormCount));
-        drawRow(ctx, client, x, ly + LINE_H,     "Worms/h", DF1.format(GhostKillTrackerClient.wormRate));
-        y += WORM_BOX_H + GAP;
-
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§7[N] Start  [M] Pause  [R] Reset"), x, y, 0xFFAAAAAA);
+        // ONLY RENDER SCATHA BOX IF ENABLED
+        if (GhostKillTrackerClient.scathaEnabled) {
+            drawBox(ctx, x, y, 160, 45, "Scatha Tracker");
+            drawRow(ctx, client, x, y + 15, "Worms", DF0.format(GhostKillTrackerClient.wormCount));
+            drawRow(ctx, client, x, y + 26, "Worms/h", DF1.format(GhostKillTrackerClient.wormRate));
+        }
     }
 
-    private static void drawRow(DrawContext ctx, MinecraftClient client, int boxX, int y, String label, String value) {
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§7" + label), boxX + PAD, y, LABEL_COLOR);
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§e" + value), boxX + 100, y, VALUE_COLOR);
+    private static void drawRow(DrawContext ctx, MinecraftClient client, int x, int y, String label, String val) {
+        ctx.drawTextWithShadow(client.textRenderer, "§7" + label, x + 5, y, 0xCCCCCC);
+        ctx.drawTextWithShadow(client.textRenderer, "§e" + val, x + 100, y, 0xFFFFFF);
     }
 
-    private static void drawBox(DrawContext ctx, int x, int y, int w, int h) {
-        ctx.fill(x, y, x + w, y + h, BG_COLOR);
-        ctx.fill(x,         y,         x + w, y + 1,     BORDER_COLOR);
-        ctx.fill(x,         y + h - 1, x + w, y + h,     BORDER_COLOR);
-        ctx.fill(x,         y,         x + 1, y + h,     BORDER_COLOR);
-        ctx.fill(x + w - 1, y,         x + w, y + h,     BORDER_COLOR);
+    private static void drawBox(DrawContext ctx, int x, int y, int w, int h, String title) {
+        ctx.fill(x, y, x + w, y + h, 0xCC1A1A1A);
+        ctx.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, "§f" + title, x + 5, y + 4, 0xFFFFFF);
     }
 }
