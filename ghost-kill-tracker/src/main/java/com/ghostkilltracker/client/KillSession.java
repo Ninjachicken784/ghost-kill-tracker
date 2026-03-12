@@ -19,6 +19,11 @@ public class KillSession {
     private boolean paused = false;
     private boolean running = false;
 
+    // --- NEW METHOD TO FIX THE BUILD ERROR ---
+    public long getElapsedTime() {
+        return getSessionActiveMs(); 
+    }
+
     public void start() {
         if (!running) {
             running = true;
@@ -54,7 +59,6 @@ public class KillSession {
         sessionStartTime = System.currentTimeMillis();
         sessionPausedElapsed = 0;
         if (paused && pauseStartTime != -1) {
-            // Don't count current pause in new session
             pauseStartTime = System.currentTimeMillis();
         }
     }
