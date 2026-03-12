@@ -6,7 +6,7 @@ import net.minecraft.text.Text;
 import java.text.DecimalFormat;
 
 public class GhostKillHud {
-    private static final int BG_COLOR = 0x80000000; 
+    private static final int BG_COLOR = 0x80000000; // Transparent Black
     private static final DecimalFormat DF0 = new DecimalFormat("#,##0");
     private static final DecimalFormat DF1 = new DecimalFormat("#,##0.0");
 
@@ -17,34 +17,45 @@ public class GhostKillHud {
         int y = GhostKillTrackerClient.hudY;
         int width = 140;
 
-        // 1. GHOST SECTION
+        // --- GHOST SECTION ---
         if (GhostKillTrackerClient.ghostEnabled) {
-            // Draw Background for Ghost stats
-            ctx.fill(x - 2, y - 2, x + width, y + 50, BG_COLOR);
-            ctx.drawTextWithShadow(client.textRenderer, "§b§lGhost Session", x, y, 0xFFFFFF);
+            // Draw the background plate
+            ctx.fill(x - 2, y - 2, x + width, y + 52, BG_COLOR);
+            
+            // Draw the Header
+            ctx.drawTextWithShadow(client.textRenderer, "§b§lGHOST TRACKER", x, y, 0xFFFFFF);
             y += 12;
-            drawRow(ctx, client, x, y, "Kills", DF0.format(s.getSessionKills()));
-            drawRow(ctx, client, x, y + 10, "Kills/h", DF1.format(s.getSessionKillsPerHour()));
-            drawRow(ctx, client, x, y + 20, "Sorrow", DF0.format(s.getSessionSorrow()));
-            drawRow(ctx, client, x, y + 30, "Plasma", DF0.format(s.getSessionPlasma()));
-            y += 45; // Space before next box
+
+            // Draw the Stats (Label : Value)
+            drawStatRow(ctx, client, x, y, "Kills", DF0.format(s.getSessionKills()));
+            drawStatRow(ctx, client, x, y + 10, "Kills/h", DF1.format(s.getSessionKillsPerHour()));
+            drawStatRow(ctx, client, x, y + 20, "Sorrow", DF0.format(s.getSessionSorrow()));
+            drawStatRow(ctx, client, x, y + 30, "Plasma", DF0.format(s.getSessionPlasma()));
+            
+            y += 50; // Move down for the next section
         }
 
-        // 2. WORM SECTION
+        // --- WORM SECTION ---
         if (GhostKillTrackerClient.scathaEnabled) {
-            // Draw Background for Worm stats
-            ctx.fill(x - 2, y - 2, x + width, y + 30, BG_COLOR);
-            ctx.drawTextWithShadow(client.textRenderer, "§e§lWorm Tracker", x, y, 0xFFFFFF);
+            // Draw the background plate
+            ctx.fill(x - 2, y - 2, x + width, y + 32, BG_COLOR);
+            
+            // Draw the Header
+            ctx.drawTextWithShadow(client.textRenderer, "§e§lWORM TRACKER", x, y, 0xFFFFFF);
             y += 12;
-            drawRow(ctx, client, x, y, "Worms", DF0.format(GhostKillTrackerClient.wormCount));
-            drawRow(ctx, client, x, y + 10, "Worms/h", DF1.format(GhostKillTrackerClient.wormRate));
+
+            // Draw the Stats
+            drawStatRow(ctx, client, x, y, "Worms", DF0.format(GhostKillTrackerClient.wormCount));
+            drawStatRow(ctx, client, x, y + 10, "Worms/h", DF1.format(GhostKillTrackerClient.wormRate));
         }
     }
 
-    private static void drawRow(DrawContext ctx, MinecraftClient client, int x, int y, String label, String val) {
+    private static void drawStatRow(DrawContext ctx, MinecraftClient client, int x, int y, String label, String value) {
+        // Draw Label on the left
         ctx.drawTextWithShadow(client.textRenderer, "§f" + label + ":", x, y, 0xFFFFFF);
-        int valWidth = client.textRenderer.getWidth(val);
-        // This aligns the numbers to the right side of the box
-        ctx.drawTextWithShadow(client.textRenderer, "§6" + val, x + 135 - valWidth, y, 0xFFFFFF);
+        
+        // Draw Value on the right
+        int valWidth = client.textRenderer.getWidth(value);
+        ctx.drawTextWithShadow(client.textRenderer, "§6" + value, x + 135 - valWidth, y, 0xFFFFFF);
     }
 }
