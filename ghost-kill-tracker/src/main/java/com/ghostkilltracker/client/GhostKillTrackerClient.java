@@ -17,7 +17,11 @@ import java.util.regex.Pattern;
 public class GhostKillTrackerClient implements ClientModInitializer {
     public static final KillSession SESSION = new KillSession();
     
-    // Independent Toggles
+    // --- ADDED BACK MISSING VARIABLES FOR MIXINS ---
+    public static boolean hudVisible = true;
+    public static boolean dropsEnabled = true;
+    
+    // Independent Toggles for the Menu
     public static boolean ghostEnabled = true;
     public static boolean scathaEnabled = true;
     
@@ -28,13 +32,12 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public static double wormRate = 0.0;
     private static final String WORM_MSG = "You hear the sound of something approaching...";
 
-    private boolean nWasDown = false, mWasDown = false, rWasDown = false;
+    private boolean nWasDown = false, rWasDown = false;
     private int lastGauntletKills = -1;
     private static final Pattern KILLS_PATTERN = Pattern.compile("Kills:\\s*([\\d,]+)");
 
     @Override
     public void onInitializeClient() {
-        // FIXED CHAT LISTENER
         ClientReceiveMessageEvents.CHAT.register((message, signedMessage, sender, params, receptionTimestamp) -> {
             if (scathaEnabled && message.getString().contains(WORM_MSG)) {
                 wormCount++;
@@ -44,7 +47,6 @@ public class GhostKillTrackerClient implements ClientModInitializer {
         });
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            // NEW COMMAND /sbp to open the GUI
             dispatcher.register(ClientCommandManager.literal("sbp")
                 .executes(ctx -> {
                     MinecraftClient.getInstance().send(() -> 
@@ -55,14 +57,16 @@ public class GhostKillTrackerClient implements ClientModInitializer {
         });
 
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
-            GhostKillHud.render(drawContext, MinecraftClient.getInstance());
+            if (hudVisible) {
+                GhostKillHud.render(drawContext, MinecraftClient.getInstance());
+            }
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null || client.currentScreen != null) return;
             
-            // GHOST LOGIC (Only runs if ghostEnabled is ON)
-            if (ghostEnabled && client.player.getWorld().getTime() % 20 == 0) {
+            // FIXED getWorld() to work with 1.21
+            if (ghostEnabled && client.world.getTime() % 20 == 0) {
                 ItemStack held = client.player.getMainHandStack();
                 if (!held.isEmpty() && held.contains(DataComponentTypes.LORE)) {
                     for (Text line : held.get(DataComponentTypes.LORE).lines()) {
@@ -80,7 +84,6 @@ public class GhostKillTrackerClient implements ClientModInitializer {
                 }
             }
 
-            // Keybinds
             boolean nDown = InputUtil.isKeyPressed(client.getWindow(), 78);
             boolean rDown = InputUtil.isKeyPressed(client.getWindow(), 82);
             if (nDown && !nWasDown) { SESSION.start(); client.player.sendMessage(Text.literal("§aTracker Started!"), true); }
