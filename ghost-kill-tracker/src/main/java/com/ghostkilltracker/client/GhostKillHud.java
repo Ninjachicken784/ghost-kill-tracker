@@ -15,7 +15,7 @@ public class GhostKillHud {
     private static final DecimalFormat DF1 = new DecimalFormat("#,##0.0");
     private static final int BOX_W  = 160;
     private static final int BOX_H  = 84;
-    private static final int WORM_BOX_H = 40; // Shorter box since it has fewer lines
+    private static final int WORM_BOX_H = 40; 
     private static final int PAD    = 6;
     private static final int LINE_H = 11;
     private static final int GAP    = 6;
@@ -30,7 +30,7 @@ public class GhostKillHud {
         ctx.drawTextWithShadow(client.textRenderer, Text.literal(status), x, y, 0xFFFFFFFF);
         y += 12;
 
-        // --- GHOST TOTAL BOX ---
+        // Total Box
         drawBox(ctx, x, y, BOX_W, BOX_H);
         ctx.drawCenteredTextWithShadow(client.textRenderer, Text.literal("§fTotal"), x + BOX_W / 2, y + PAD, TITLE_COLOR);
         int ly = y + PAD + LINE_H + 2;
@@ -41,7 +41,7 @@ public class GhostKillHud {
         drawRow(ctx, client, x, ly + LINE_H * 4, "Uptime",  s.getTotalUptime());
         y += BOX_H + GAP;
 
-        // --- GHOST SESSION BOX ---
+        // Session Box
         drawBox(ctx, x, y, BOX_W, BOX_H);
         ctx.drawCenteredTextWithShadow(client.textRenderer, Text.literal("§fSession"), x + BOX_W / 2, y + PAD, TITLE_COLOR);
         ly = y + PAD + LINE_H + 2;
@@ -52,12 +52,12 @@ public class GhostKillHud {
         drawRow(ctx, client, x, ly + LINE_H * 4, "Uptime",  s.getSessionUptime());
         y += BOX_H + GAP;
 
-        // --- NEW WORM BOX ---
+        // Worm Box
         drawBox(ctx, x, y, BOX_W, WORM_BOX_H);
         ctx.drawCenteredTextWithShadow(client.textRenderer, Text.literal("§eWorm Tracker"), x + BOX_W / 2, y + PAD, 0xFFFFFF55);
         ly = y + PAD + LINE_H + 2;
         drawRow(ctx, client, x, ly,              "Worms",   DF0.format(GhostKillTrackerClient.wormCount));
-        drawRow(ctx, client, x, ly + LINE_H,     "Worms/h", "§d" + DF1.format(GhostKillTrackerClient.wormRate));
+        drawRow(ctx, client, x, ly + LINE_H,     "Worms/h", DF1.format(GhostKillTrackerClient.wormRate));
         y += WORM_BOX_H + GAP;
 
         ctx.drawTextWithShadow(client.textRenderer, Text.literal("§7[N] Start  [M] Pause  [R] Reset"), x, y, 0xFFAAAAAA);
