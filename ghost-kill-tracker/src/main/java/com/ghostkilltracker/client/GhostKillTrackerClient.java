@@ -11,39 +11,32 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GhostKillTrackerClient implements ClientModInitializer {
-    public static final String MOD_ID = "ghostkilltracker";
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static final KillSession SESSION = new KillSession();
-    public static boolean hudVisible = true;
-    public static boolean dropsEnabled = true;
-    public static int hudX = -1;
-    public static int hudY = 5;
+    
+    // Independent Toggles
+    public static boolean ghostEnabled = true;
+    public static boolean scathaEnabled = true;
+    
+    public static int hudX = 10;
+    public static int hudY = 10;
 
-    // Worm Stats
     public static int wormCount = 0;
     public static double wormRate = 0.0;
     private static final String WORM_MSG = "You hear the sound of something approaching...";
 
-    private boolean nWasDown = false;
-    private boolean mWasDown = false;
-    private boolean rWasDown = false;
+    private boolean nWasDown = false, mWasDown = false, rWasDown = false;
     private int lastGauntletKills = -1;
-    private int tickCounter = 0;
     private static final Pattern KILLS_PATTERN = Pattern.compile("Kills:\\s*([\\d,]+)");
 
     @Override
     public void onInitializeClient() {
-        LOGGER.info("Ghost Kill Tracker + Scatha initialized!");
-
-        // Chat Listener for Worms
+        // FIXED CHAT LISTENER
         ClientReceiveMessageEvents.CHAT.register((message, signedMessage, sender, params, receptionTimestamp) -> {
-            if (message.getString().contains(WORM_MSG)) {
+            if (scathaEnabled && message.getString().contains(WORM_MSG)) {
                 wormCount++;
                 long elapsed = SESSION.getElapsedTime(); 
                 wormRate = (wormCount / (Math.max(1, elapsed) / 3600000.0));
@@ -51,77 +44,48 @@ public class GhostKillTrackerClient implements ClientModInitializer {
         });
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            dispatcher.register(ClientCommandManager.literal("ghosttracker")
+            // NEW COMMAND /sbp to open the GUI
+            dispatcher.register(ClientCommandManager.literal("sbp")
                 .executes(ctx -> {
-                    hudVisible = !hudVisible;
-                    ctx.getSource().sendFeedback(Text.literal("Ghost Tracker HUD: " + (hudVisible ? "§aON" : "§cOFF")));
-                    return 1;
-                })
-            );
-
-            dispatcher.register(ClientCommandManager.literal("editGhostTracker")
-                .executes(ctx -> {
-                    MinecraftClient.getInstance().send(() ->
-                        MinecraftClient.getInstance().setScreen(new GhostTrackerEditScreen()));
+                    MinecraftClient.getInstance().send(() -> 
+                        MinecraftClient.getInstance().setScreen(new SbpMenuScreen()));
                     return 1;
                 })
             );
         });
 
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (hudX == -1) hudX = client.getWindow().getScaledWidth() - 165;
-            if (hudVisible) GhostKillHud.render(drawContext, client);
-            DropNotification.render(drawContext, client);
+            GhostKillHud.render(drawContext, MinecraftClient.getInstance());
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null || client.currentScreen != null) return;
-
-            tickCounter++;
-            if (tickCounter >= 20) {
-                tickCounter = 0;
+            
+            // GHOST LOGIC (Only runs if ghostEnabled is ON)
+            if (ghostEnabled && client.player.getWorld().getTime() % 20 == 0) {
                 ItemStack held = client.player.getMainHandStack();
-                if (!held.isEmpty()) {
-                    var lore = held.get(DataComponentTypes.LORE);
-                    if (lore != null) {
-                        for (Text line : lore.lines()) {
-                            Matcher m = KILLS_PATTERN.matcher(line.getString());
-                            if (m.find()) {
-                                try {
-                                    int kills = Integer.parseInt(m.group(1).replace(",", ""));
-                                    if (lastGauntletKills >= 0 && kills > lastGauntletKills) {
-                                        int diff = kills - lastGauntletKills;
-                                        if (diff <= 20) {
-                                            for (int i = 0; i < diff; i++) SESSION.addKill();
-                                        }
-                                    }
-                                    lastGauntletKills = kills;
-                                } catch (NumberFormatException ignored) {}
-                                break;
+                if (!held.isEmpty() && held.contains(DataComponentTypes.LORE)) {
+                    for (Text line : held.get(DataComponentTypes.LORE).lines()) {
+                        Matcher m = KILLS_PATTERN.matcher(line.getString());
+                        if (m.find()) {
+                            int kills = Integer.parseInt(m.group(1).replace(",", ""));
+                            if (lastGauntletKills >= 0 && kills > lastGauntletKills) {
+                                int diff = kills - lastGauntletKills;
+                                if (diff <= 20) for (int i = 0; i < diff; i++) SESSION.addKill();
                             }
+                            lastGauntletKills = kills;
+                            break;
                         }
                     }
                 }
             }
 
+            // Keybinds
             boolean nDown = InputUtil.isKeyPressed(client.getWindow(), 78);
-            boolean mDown = InputUtil.isKeyPressed(client.getWindow(), 77);
             boolean rDown = InputUtil.isKeyPressed(client.getWindow(), 82);
-
-            if (nDown && !nWasDown) { SESSION.start(); lastGauntletKills = -1; client.player.sendMessage(Text.literal("§aTracker STARTED!"), true); }
-            if (mDown && !mWasDown) { SESSION.pause(); client.player.sendMessage(Text.literal("§eTracker PAUSED!"), true); }
-            if (rDown && !rWasDown) { 
-                SESSION.resetSession(); 
-                wormCount = 0;
-                wormRate = 0;
-                lastGauntletKills = -1; 
-                client.player.sendMessage(Text.literal("§cSession RESET!"), true); 
-            }
-
-            nWasDown = nDown;
-            mWasDown = mDown;
-            rWasDown = rDown;
+            if (nDown && !nWasDown) { SESSION.start(); client.player.sendMessage(Text.literal("§aTracker Started!"), true); }
+            if (rDown && !rWasDown) { SESSION.resetSession(); wormCount = 0; wormRate = 0; client.player.sendMessage(Text.literal("§cReset!"), true); }
+            nWasDown = nDown; rWasDown = rDown;
         });
     }
 }
