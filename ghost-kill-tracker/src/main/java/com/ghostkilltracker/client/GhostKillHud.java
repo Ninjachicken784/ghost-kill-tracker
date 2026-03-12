@@ -11,10 +11,18 @@ public class GhostKillHud {
         int x = GhostKillTrackerClient.hudX;
         int y = GhostKillTrackerClient.hudY;
 
-        ctx.fill(x - 5, y - 5, x + 120, y + 40, 0x90000000); // Background box
+        // Draw background for the whole set
+        ctx.fill(x - 5, y - 5, x + 130, y + 65, 0x90000000);
 
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§eWorm Kills: §f" + GhostKillTrackerClient.wormKills), x, y, -1);
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§eWorms/H: §f" + String.format("%.1f", GhostKillTrackerClient.wormPerHour)), x, y + 12, -1);
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§eSession: §f" + GhostKillTrackerClient.getSessionTime()), x, y + 24, -1);
+        // GHOST SECTION
+        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§bGhost Kills: §f" + GhostKillTrackerClient.ghostKills), x, y, -1);
+        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§bGhost/H: §f" + String.format("%.1f", GhostKillTrackerClient.ghostPerHour)), x, y + 12, -1);
+
+        // WORM SECTION
+        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§eWorm Kills: §f" + GhostKillTrackerClient.wormKills), x, y + 28, -1);
+        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§eWorms/H: §f" + String.format("%.1f", GhostKillTrackerClient.wormPerHour)), x, y + 40, -1);
+
+        // TIME SECTION
+        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§aSession: §f" + GhostKillTrackerClient.getSessionTime()), x, y + 54, -1);
     }
 }
