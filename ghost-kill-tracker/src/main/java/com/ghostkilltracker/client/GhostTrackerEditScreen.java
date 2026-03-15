@@ -9,7 +9,7 @@ public class GhostTrackerEditScreen extends Screen {
         super(Text.literal("Edit HUD Position"));
     }
 
-    // Removed @Override to bypass the strict compiler check failing your build
+    @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         GhostKillTrackerClient.hudX = (int) mouseX;
         GhostKillTrackerClient.hudY = (int) mouseY;
@@ -20,5 +20,10 @@ public class GhostTrackerEditScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         GhostKillHud.render(context, this.client);
+    }
+    
+    @Override
+    public boolean shouldPause() {
+        return false;
     }
 }
