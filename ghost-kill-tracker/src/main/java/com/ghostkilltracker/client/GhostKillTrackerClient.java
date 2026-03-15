@@ -22,6 +22,7 @@ public class GhostKillTrackerClient implements ClientModInitializer {
     public static String getWormsPerHour() {
         long elapsed = System.currentTimeMillis() - startTime;
         if (elapsed < 1000) return "0.00";
-        return String.format("%.2f", totalWorms / (elapsed / 3600000.0));
+        double hours = elapsed / 3600000.0;
+        return String.format("%.2f", totalWorms / hours);
     }
 }
