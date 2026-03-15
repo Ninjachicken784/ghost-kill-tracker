@@ -1,19 +1,19 @@
 package com.ghostkilltracker.client;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
 
 public class GhostKillTrackerClient implements ClientModInitializer {
-    // These static variables fix the "cannot find symbol" errors in your other files
+    // Static instance so other files can find it
     public static GhostKillTrackerClient SESSION;
+
+    // Settings (Fixed symbols for your Menu Screen)
     public static boolean ghostEnabled = true;
-    public static boolean scathaEnabled = true;
+    public static boolean scathaEnabled = true; // This toggles the Worm tracker too
     public static boolean dropsEnabled = true;
     public static int hudX = 10;
     public static int hudY = 10;
 
-    // Worm Tracker Variables
+    // Worm Stats
     private int totalWorms = 0;
     private long startTime = System.currentTimeMillis();
 
@@ -22,22 +22,21 @@ public class GhostKillTrackerClient implements ClientModInitializer {
         SESSION = this;
     }
 
-    // This is called by your Mixin when a chat message is received
-    public void handleChat(String message) {
-        if (message.contains("You hear the sound of something approaching...")) {
-            totalWorms++;
-        }
+    public void addWorm() {
+        this.totalWorms++;
     }
 
-    // Logic for other files to call
-    public void addSorrow() { /* Logic for ghosts */ }
-    public void addPlasma() { /* Logic for ghosts */ }
+    // Placeholders to fix the errors in your Mixin
+    public void addSorrow() { /* You can add ghost logic here later */ }
+    public void addPlasma() { /* You can add ghost logic here later */ }
 
-    public int getTotalWorms() { return totalWorms; }
-    
+    public int getTotalWorms() {
+        return totalWorms;
+    }
+
     public double getWormsPerHour() {
         long elapsed = System.currentTimeMillis() - startTime;
-        if (elapsed < 1000) return 0;
-        return (totalWorms / (elapsed / 3600000.0));
+        if (elapsed < 1000) return 0.0; // Avoid division by zero
+        return totalWorms / (elapsed / 3600000.0);
     }
 }
