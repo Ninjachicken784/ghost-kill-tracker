@@ -1,30 +1,25 @@
 package com.ghostkilltracker.client;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 
 public class GhostKillHud {
 
-    private final GhostKillTrackerClient tracker;
+    // This matches the "render(DrawContext, MinecraftClient)" error in your logs
+    public static void render(DrawContext context, MinecraftClient client) {
+        if (!GhostKillTrackerClient.scathaEnabled) return;
 
-    public GhostKillHud(GhostKillTrackerClient tracker) {
-        this.tracker = tracker;
-    }
+        GhostKillTrackerClient session = GhostKillTrackerClient.SESSION;
+        if (session == null) return;
 
-    @SubscribeEvent
-    public void onRenderGui(RenderGameOverlayEvent.Post event) {
-        // Only draw when the main game HUD is drawing text
-        if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return;
+        String totalText = "Total Worms: §a" + session.getTotalWorms();
+        String rateText = String.format("Worms/h: §e%.2f", session.getWormsPerHour());
 
-        FontRenderer fr = Minecraft.getMinecraft().fontRendererObj;
+        // Draw the text onto the screen at the saved coordinates
+        context.drawTextWithShadow(client.textRenderer, totalText, 
+            GhostKillTrackerClient.hudX, GhostKillTrackerClient.hudY, 0xFFFFFF);
         
-        String totalStr = "Total Worms: §a" + tracker.getTotalWorms();
-        String rateStr = String.format("Worms/h: §e%.2f", tracker.getWormsPerHour());
-
-        // Renders at the top left
-        fr.drawStringWithShadow(totalStr, 5, 5, 0xFFFFFF);
-        fr.drawStringWithShadow(rateStr, 5, 15, 0xFFFFFF);
+        context.drawTextWithShadow(client.textRenderer, rateText, 
+            GhostKillTrackerClient.hudX, GhostKillTrackerClient.hudY + 10, 0xFFFFFF);
     }
 }
