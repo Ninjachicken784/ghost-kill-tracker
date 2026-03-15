@@ -1,28 +1,18 @@
-package com.ghostkilltracker.client;
+@SubscribeEvent
+public void onRenderGui(RenderGameOverlayEvent.Post event) {
+    if (event.type != RenderGameOverlayEvent.ElementType.TEXT) return;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
+    FontRenderer fr = Minecraft.getMinecraft().fontRendererObj;
+    
+    // Get data from your Client class
+    int total = trackerClient.getTotalWorms();
+    double rate = trackerClient.getWormsPerHour();
 
-public class GhostKillHud {
-    public static void render(DrawContext ctx, MinecraftClient client) {
-        if (client.player == null) return;
+    // Format the strings
+    String totalStr = "Total Worms: §a" + total;
+    String rateStr = String.format("Worms/h: §e%.2f", rate);
 
-        int x = GhostKillTrackerClient.hudX;
-        int y = GhostKillTrackerClient.hudY;
-
-        // Draw background for the whole set
-        ctx.fill(x - 5, y - 5, x + 130, y + 65, 0x90000000);
-
-        // GHOST SECTION
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§bGhost Kills: §f" + GhostKillTrackerClient.ghostKills), x, y, -1);
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§bGhost/H: §f" + String.format("%.1f", GhostKillTrackerClient.ghostPerHour)), x, y + 12, -1);
-
-        // WORM SECTION
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§eWorm Kills: §f" + GhostKillTrackerClient.wormKills), x, y + 28, -1);
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§eWorms/H: §f" + String.format("%.1f", GhostKillTrackerClient.wormPerHour)), x, y + 40, -1);
-
-        // TIME SECTION
-        ctx.drawTextWithShadow(client.textRenderer, Text.literal("§aSession: §f" + GhostKillTrackerClient.getSessionTime()), x, y + 54, -1);
-    }
+    // Draw to screen (adjust X and Y coordinates as needed)
+    fr.drawStringWithShadow(totalStr, 10, 10, 0xFFFFFF);
+    fr.drawStringWithShadow(rateStr, 10, 20, 0xFFFFFF);
 }
