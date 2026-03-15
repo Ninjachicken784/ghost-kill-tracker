@@ -14,6 +14,7 @@ public class ClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onGameMessage", at = @At("HEAD"))
     private void onChat(GameMessageS2CPacket packet, CallbackInfo ci) {
+        if (packet.content() == null) return;
         String raw = packet.content().getString();
 
         if (raw.contains("You hear the sound of something approaching...")) {
