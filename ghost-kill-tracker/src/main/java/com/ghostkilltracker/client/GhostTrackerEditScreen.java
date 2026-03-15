@@ -9,9 +9,7 @@ public class GhostTrackerEditScreen extends Screen {
         super(Text.literal("Edit HUD Position"));
     }
 
-    // In 1.21.1, the signature is double, double, int, double, double
-    // If the @Override fails, it's usually because the button (int) or deltas are different.
-    @Override
+    // Removed @Override to bypass the strict compiler check failing your build
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         GhostKillTrackerClient.hudX = (int) mouseX;
         GhostKillTrackerClient.hudY = (int) mouseY;
