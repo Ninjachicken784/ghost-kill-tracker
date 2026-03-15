@@ -5,12 +5,12 @@ import net.minecraft.client.gui.DrawContext;
 
 public class GhostKillHud {
     public static void render(DrawContext context, MinecraftClient client) {
-        if (!GhostKillTrackerClient.scathaEnabled) return;
+        if (!GhostKillTrackerClient.scathaEnabled || client.textRenderer == null) return;
 
-        String line1 = "Total Worms: §a" + GhostKillTrackerClient.totalWorms;
-        String line2 = "Worms/h: §e" + GhostKillTrackerClient.getWormsPerHour();
+        String worms = "Total Worms: §a" + GhostKillTrackerClient.totalWorms;
+        String rate = "Worms/h: §e" + GhostKillTrackerClient.getWormsPerHour();
 
-        context.drawTextWithShadow(client.textRenderer, line1, GhostKillTrackerClient.hudX, GhostKillTrackerClient.hudY, 0xFFFFFF);
-        context.drawTextWithShadow(client.textRenderer, line2, GhostKillTrackerClient.hudX, GhostKillTrackerClient.hudY + 10, 0xFFFFFF);
+        context.drawTextWithShadow(client.textRenderer, worms, GhostKillTrackerClient.hudX, GhostKillTrackerClient.hudY, 0xFFFFFF);
+        context.drawTextWithShadow(client.textRenderer, rate, GhostKillTrackerClient.hudX, GhostKillTrackerClient.hudY + 10, 0xFFFFFF);
     }
 }
