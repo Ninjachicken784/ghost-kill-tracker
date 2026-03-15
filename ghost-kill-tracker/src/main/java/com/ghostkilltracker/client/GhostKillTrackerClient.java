@@ -3,17 +3,15 @@ package com.ghostkilltracker.client;
 import net.fabricmc.api.ClientModInitializer;
 
 public class GhostKillTrackerClient implements ClientModInitializer {
-    // Static instance so other files can find it
     public static GhostKillTrackerClient SESSION;
-
-    // Settings (Fixed symbols for your Menu Screen)
+    
+    // settings for HUD and Menu
     public static boolean ghostEnabled = true;
-    public static boolean scathaEnabled = true; // This toggles the Worm tracker too
+    public static boolean scathaEnabled = true;
     public static boolean dropsEnabled = true;
     public static int hudX = 10;
     public static int hudY = 10;
 
-    // Worm Stats
     private int totalWorms = 0;
     private long startTime = System.currentTimeMillis();
 
@@ -22,13 +20,13 @@ public class GhostKillTrackerClient implements ClientModInitializer {
         SESSION = this;
     }
 
+    // This is the method the Mixin was missing
     public void addWorm() {
         this.totalWorms++;
     }
 
-    // Placeholders to fix the errors in your Mixin
-    public void addSorrow() { /* You can add ghost logic here later */ }
-    public void addPlasma() { /* You can add ghost logic here later */ }
+    public void addSorrow() { /* placeholder for ghost tracking */ }
+    public void addPlasma() { /* placeholder for ghost tracking */ }
 
     public int getTotalWorms() {
         return totalWorms;
@@ -36,7 +34,7 @@ public class GhostKillTrackerClient implements ClientModInitializer {
 
     public double getWormsPerHour() {
         long elapsed = System.currentTimeMillis() - startTime;
-        if (elapsed < 1000) return 0.0; // Avoid division by zero
+        if (elapsed < 1000) return 0.0; 
         return totalWorms / (elapsed / 3600000.0);
     }
 }
