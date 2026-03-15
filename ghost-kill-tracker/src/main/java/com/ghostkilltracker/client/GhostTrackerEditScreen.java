@@ -9,7 +9,8 @@ public class GhostTrackerEditScreen extends Screen {
         super(Text.literal("Edit HUD Position"));
     }
 
-    // This matches the "found" signature in your error log: double, double, int, double, double
+    // In 1.21.1, the signature is double, double, int, double, double
+    // If the @Override fails, it's usually because the button (int) or deltas are different.
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         GhostKillTrackerClient.hudX = (int) mouseX;
