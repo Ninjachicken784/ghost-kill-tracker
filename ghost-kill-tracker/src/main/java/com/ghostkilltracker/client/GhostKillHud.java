@@ -4,22 +4,13 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 
 public class GhostKillHud {
-
-    // This matches the "render(DrawContext, MinecraftClient)" error in your logs
     public static void render(DrawContext context, MinecraftClient client) {
         if (!GhostKillTrackerClient.scathaEnabled) return;
 
-        GhostKillTrackerClient session = GhostKillTrackerClient.SESSION;
-        if (session == null) return;
+        String line1 = "Total Worms: §a" + GhostKillTrackerClient.totalWorms;
+        String line2 = "Worms/h: §e" + GhostKillTrackerClient.getWormsPerHour();
 
-        String totalText = "Total Worms: §a" + session.getTotalWorms();
-        String rateText = String.format("Worms/h: §e%.2f", session.getWormsPerHour());
-
-        // Draw the text onto the screen at the saved coordinates
-        context.drawTextWithShadow(client.textRenderer, totalText, 
-            GhostKillTrackerClient.hudX, GhostKillTrackerClient.hudY, 0xFFFFFF);
-        
-        context.drawTextWithShadow(client.textRenderer, rateText, 
-            GhostKillTrackerClient.hudX, GhostKillTrackerClient.hudY + 10, 0xFFFFFF);
+        context.drawTextWithShadow(client.textRenderer, line1, GhostKillTrackerClient.hudX, GhostKillTrackerClient.hudY, 0xFFFFFF);
+        context.drawTextWithShadow(client.textRenderer, line2, GhostKillTrackerClient.hudX, GhostKillTrackerClient.hudY + 10, 0xFFFFFF);
     }
 }
