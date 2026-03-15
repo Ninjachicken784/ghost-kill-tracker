@@ -1,39 +1,43 @@
 package com.ghostkilltracker.client;
 
-import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.fabricmc.api.ClientModInitializer;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
 
-public class GhostKillTrackerClient {
+public class GhostKillTrackerClient implements ClientModInitializer {
+    // These static variables fix the "cannot find symbol" errors in your other files
+    public static GhostKillTrackerClient SESSION;
+    public static boolean ghostEnabled = true;
+    public static boolean scathaEnabled = true;
+    public static boolean dropsEnabled = true;
+    public static int hudX = 10;
+    public static int hudY = 10;
 
+    // Worm Tracker Variables
     private int totalWorms = 0;
     private long startTime = System.currentTimeMillis();
 
-    @SubscribeEvent
-    public void onChatReceived(ClientChatReceivedEvent event) {
-        // We use unformatted text to ignore color codes like §6
-        String message = event.message.getUnformattedText();
+    @Override
+    public void onInitializeClient() {
+        SESSION = this;
+    }
 
+    // This is called by your Mixin when a chat message is received
+    public void handleChat(String message) {
         if (message.contains("You hear the sound of something approaching...")) {
             totalWorms++;
-            // Optional: A little ding so you know it worked
-            Minecraft.getMinecraft().thePlayer.playSound("random.orb", 1.0F, 1.0F);
         }
     }
 
-    public int getTotalWorms() {
-        return totalWorms;
-    }
+    // Logic for other files to call
+    public void addSorrow() { /* Logic for ghosts */ }
+    public void addPlasma() { /* Logic for ghosts */ }
 
+    public int getTotalWorms() { return totalWorms; }
+    
     public double getWormsPerHour() {
-        long elapsedMillis = System.currentTimeMillis() - startTime;
-        if (elapsedMillis < 1000) return 0.0; 
-        
-        return totalWorms / (elapsedMillis / 3600000.0);
-    }
-
-    public void resetStats() {
-        this.totalWorms = 0;
-        this.startTime = System.currentTimeMillis();
+        long elapsed = System.currentTimeMillis() - startTime;
+        if (elapsed < 1000) return 0;
+        return (totalWorms / (elapsed / 3600000.0));
     }
 }
